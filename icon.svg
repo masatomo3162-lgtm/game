@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7C4DE0"/>
+      <stop offset="1" stop-color="#45239A"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.12" r="0.9">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="0.6" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="amber" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F0CB78"/>
+      <stop offset="0.55" stop-color="#C8862F"/>
+      <stop offset="1" stop-color="#8A4E16"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#glow)"/>
+    <path d="M330,470
+             q-70,0 -96,72
+             l-58,150
+             q-30,86 44,110
+             q60,18 96,-40
+             l40,-64 h312 l40,64
+             q36,58 96,40
+             q74,-24 44,-110
+             l-58,-150
+             q-26,-72 -96,-72 z" fill="#ffffff"/>
+    <rect x="336" y="556" width="112" height="34" rx="10" fill="#3A2A6B"/><rect x="375" y="517" width="34" height="112" rx="10" fill="#3A2A6B"/><circle cx="628" cy="540" r="24" fill="#F4D06A"/><circle cx="676" cy="588" r="24" fill="#F4D06A"/><circle cx="580" cy="588" r="24" fill="#F4D06A"/><circle cx="628" cy="636" r="24" fill="#F4D06A"/><polygon points="512.0,278.0 532.0,328.5 586.2,331.9 544.3,366.5 557.8,419.1 512.0,390.0 466.2,419.1 479.7,366.5 437.8,331.9 492.0,328.5" fill="#F4D06A"/></svg>
