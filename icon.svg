@@ -1,29 +1,44 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#7C4DE0"/>
-      <stop offset="1" stop-color="#45239A"/>
+      <stop offset="0" stop-color="#155a70"/>
+      <stop offset="1" stop-color="#0a3444"/>
     </linearGradient>
-    <radialGradient id="glow" cx="0.5" cy="0.12" r="0.9">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/>
-      <stop offset="0.6" stop-color="#ffffff" stop-opacity="0"/>
+    <radialGradient id="glow" cx="0.5" cy="0.42" r="0.62">
+      <stop offset="0" stop-color="#1d7185"/>
+      <stop offset="1" stop-color="#0c3f51"/>
     </radialGradient>
-    <linearGradient id="amber" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#F0CB78"/>
-      <stop offset="0.55" stop-color="#C8862F"/>
-      <stop offset="1" stop-color="#8A4E16"/>
-    </linearGradient>
+    <filter id="sh" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="#04222c" flood-opacity="0.55"/>
+    </filter>
   </defs>
-  <rect width="1024" height="1024" fill="url(#bg)"/>
-  <rect width="1024" height="1024" fill="url(#glow)"/>
-    <path d="M330,470
-             q-70,0 -96,72
-             l-58,150
-             q-30,86 44,110
-             q60,18 96,-40
-             l40,-64 h312 l40,64
-             q36,58 96,40
-             q74,-24 44,-110
-             l-58,-150
-             q-26,-72 -96,-72 z" fill="#ffffff"/>
-    <rect x="336" y="556" width="112" height="34" rx="10" fill="#3A2A6B"/><rect x="375" y="517" width="34" height="112" rx="10" fill="#3A2A6B"/><circle cx="628" cy="540" r="24" fill="#F4D06A"/><circle cx="676" cy="588" r="24" fill="#F4D06A"/><circle cx="580" cy="588" r="24" fill="#F4D06A"/><circle cx="628" cy="636" r="24" fill="#F4D06A"/><polygon points="512.0,278.0 532.0,328.5 586.2,331.9 544.3,366.5 557.8,419.1 512.0,390.0 466.2,419.1 479.7,366.5 437.8,331.9 492.0,328.5" fill="#F4D06A"/></svg>
+
+  <rect x="26" y="26" width="460" height="460" rx="104" fill="url(#bg)"/>
+  <rect x="41" y="41" width="430" height="430" rx="90" fill="none" stroke="#8fd0dd" stroke-opacity="0.5" stroke-width="7"/>
+
+  <circle cx="256" cy="256" r="176" fill="url(#glow)" stroke="#8fd0dd" stroke-opacity="0.32" stroke-width="5"/>
+
+  <!-- ゲームパッド -->
+  <g transform="translate(256,262)" filter="url(#sh)">
+    <path d="M -142 -14
+             q -14 82 24 106
+             q 30 15 48 -20
+             l 14 -24 h 108 l 14 24
+             q 18 35 48 20
+             q 38 -24 24 -106
+             q -12 -74 -74 -74
+             h -158
+             q -62 0 -74 74 z"
+          fill="#f2e9d8" stroke="#07303f" stroke-width="7"/>
+    <!-- 十字キー -->
+    <g fill="#0e4457">
+      <rect x="-98" y="-14" width="64" height="22" rx="5"/>
+      <rect x="-77" y="-35" width="22" height="64" rx="5"/>
+    </g>
+    <!-- ボタン -->
+    <circle cx="58" cy="-20" r="17" fill="#d9a24a" stroke="#8a5f22" stroke-width="5"/>
+    <circle cx="98" cy="14" r="17" fill="#8fd0dd" stroke="#2b6b78" stroke-width="5"/>
+    <circle cx="58" cy="48" r="17" fill="#d9a24a" stroke="#8a5f22" stroke-width="5"/>
+    <circle cx="18" cy="14" r="17" fill="#c9705a" stroke="#7d3a2c" stroke-width="5"/>
+  </g>
+</svg>

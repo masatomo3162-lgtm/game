@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Game Library v1.1.0</title>
+<title>Game Library v1.1.1</title>
 <!-- App icons / PWA -->
-<link rel="icon" href="./favicon.ico?v=20260704" sizes="any">
-<link rel="icon" href="./icon.svg?v=20260704" type="image/svg+xml">
-<link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png?v=20260704">
-<link rel="icon" type="image/png" sizes="16x16" href="./favicon-16.png?v=20260704">
-<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=20260704">
-<link rel="manifest" href="./manifest.webmanifest?v=20260704">
+<link rel="icon" href="./favicon.ico?v=20260708" sizes="any">
+<link rel="icon" href="./icon.svg?v=20260708" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png?v=20260708">
+<link rel="icon" type="image/png" sizes="16x16" href="./favicon-16.png?v=20260708">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=20260708">
+<link rel="manifest" href="./manifest.webmanifest?v=20260708">
 <meta name="theme-color" content="#7C4DE0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -468,7 +468,7 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
       <div class="spill"><strong id="hTotal">0</strong>&nbsp;total</div>
       <div class="spill" style="color:var(--sp)"><strong id="hPlaying">0</strong>&nbsp;🎮</div>
       <div class="spill" style="color:var(--fav)"><strong id="hFav">0</strong>&nbsp;⭐</div>
-      <span class="ver-badge" id="verBadge">v1.1.0</span>
+      <span class="ver-badge" id="verBadge">v1.1.1</span>
     </div>
   </div>
 
@@ -831,9 +831,14 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
 
 <script>
 var PC_RAW = [];
-var APP_VERSION='1.1.0';
-var APP_RELEASE='2026/07/06';
+var APP_VERSION='1.1.1';
+var APP_RELEASE='2026/07/08';
 var CHANGELOG=[
+  {v:'1.1.1',d:'2026/07/08',items:[
+    'バックアップJSON(圧縮形式)から復元できない不具合を修正',
+    '「全ユーザーデータ削除」でゲームリストまで消えていた不具合を修正',
+    'アプリアイコンを刷新'
+  ]},
   {v:'1.1.0',d:'2026/07/06',items:[
     '既存バックアップCSVの復元互換を強化',
     '設定画面でジャンルの追加・削除に対応',
@@ -1215,6 +1220,25 @@ function save(){
     localStorage.setItem(SK,JSON.stringify(o));
   }catch(e){}
 }
+// 圧縮キー(g/f/s/u...)形式のud1件を内部形式へ展開。既に内部形式(genresオブジェクトを持つ)ならそのまま正規化して返す
+function expandUD(d){
+  if(!d||typeof d!=='object')return {genres:{},og:'',st:'unchecked',fav:false,stars:0,url:'',pl:'',ti:'',am:false,memo:'',acq:'unknown'};
+  // genresが配列(圧縮d.g) or オブジェクト(内部d.genres)のどちらでも受ける
+  var genres={};
+  if(d.genres&&typeof d.genres==='object'&&!Array.isArray(d.genres)){
+    var gk=Object.keys(d.genres);for(var k=0;k<gk.length;k++)if(d.genres[gk[k]])genres[gk[k]]=1;
+  }else{
+    var ga=Array.isArray(d.g)?d.g:(Array.isArray(d.genres)?d.genres:[]);
+    for(var j=0;j<ga.length;j++)if(ga[j])genres[ga[j]]=1;
+  }
+  var st=d.st||'unchecked';if(st==='unplayed')st='unchecked';
+  var fav=(d.fav!==undefined)?!!d.fav:!!d.f;
+  var stars=(d.stars!==undefined)?(d.stars||0):(d.s||0);
+  var url=(d.url!==undefined)?(d.url||''):(d.u||'');
+  var am=(d.am!==undefined)?!!d.am:false;
+  var acq=normAcq(d.acq!==undefined?d.acq:d.aq);
+  return {genres:genres,og:d.og||'',st:st,fav:fav,stars:stars,url:url,pl:d.pl||'',ti:d.ti||'',am:am,memo:d.memo||'',acq:acq};
+}
 function load(){
   try{
     var raw=localStorage.getItem(SK);
@@ -1222,13 +1246,8 @@ function load(){
     var obj=JSON.parse(raw);
     var ids=Object.keys(obj);
     for(var i=0;i<ids.length;i++){
-      var id=ids[i],d=obj[id];
-      var genres={};
-      var ga=d.g||[];
-      for(var j=0;j<ga.length;j++)genres[ga[j]]=1;
-      var st=d.st||'unchecked';
-      if(st==='unplayed')st='unchecked';
-      ud[id]={genres:genres,og:d.og||'',st:st,fav:!!d.f,stars:d.s||0,url:d.u||'',pl:d.pl||'',ti:d.ti||'',am:!!d.am,memo:d.memo||'',acq:normAcq(d.aq)};
+      var id=ids[i];
+      ud[id]=expandUD(obj[id]);
     }
   }catch(e){}
 }
@@ -2162,7 +2181,7 @@ function importJSONBackup(text){
   var user=obj.ud||obj.userData||obj.data;
   if(user&&typeof user==='object'){
     var ids=Object.keys(user);
-    for(var i=0;i<ids.length;i++){ud[ids[i]]=user[ids[i]];n++;}
+    for(var i=0;i<ids.length;i++){ud[ids[i]]=expandUD(user[ids[i]]);n++;}
   }
   saveGames();save();resetSmartRecs();buildSBs();applyFilters();renderDash();updateHdr();buildMemoSelect();
   alert(n+' 件復元しました');
@@ -2438,7 +2457,7 @@ function renderSettingsPage(){
   var delBtn=document.createElement('button');delBtn.className='btnsm btn-danger';delBtn.textContent='🗑 全削除';
   delBtn.addEventListener('click',function(){
     showConfirm('全ユーザーデータを削除しますか？\nゲームリストは残りますが評価・状態・メモは消去されます。',function(){
-      localStorage.removeItem(SK);localStorage.removeItem('jgl_tr');localStorage.removeItem(GK);location.reload();
+      localStorage.removeItem(SK);localStorage.removeItem('jgl_tr');location.reload();
     });
   });
   r7.ctrl.appendChild(delBtn);s7.rows.appendChild(r7.row);
