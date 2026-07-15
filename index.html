@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Game Library v1.1.1</title>
+<title>Game Library v1.1.2</title>
 <!-- App icons / PWA -->
 <link rel="icon" href="./favicon.ico?v=20260708" sizes="any">
 <link rel="icon" href="./icon.svg?v=20260708" type="image/svg+xml">
@@ -335,6 +335,10 @@ tr.sch .tmain{color:var(--sch);}
 .mbody::-webkit-scrollbar{width:8px;}
 .mbody::-webkit-scrollbar-thumb{background:var(--bd2);}
 .msl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--mt);margin-bottom:5px;}
+.genre-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;}
+.genre-head .msl{margin-bottom:0;}
+.btn-clear-genres{padding:3px 8px;background:none;border:1px solid var(--bd);border-radius:5px;color:var(--dim);font-size:10px;cursor:pointer;font-family:var(--fn);white-space:nowrap;transition:all .15s;}
+.btn-clear-genres:hover{border-color:#f87171;color:#f87171;background:rgba(248,113,113,.08);}
 .mstars{display:flex;gap:4px;}
 .mstar{font-size:26px;cursor:pointer;color:var(--so);transition:color .1s,transform .1s;}
 .mstar:hover,.mstar.lit{color:var(--fav);}
@@ -468,7 +472,7 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
       <div class="spill"><strong id="hTotal">0</strong>&nbsp;total</div>
       <div class="spill" style="color:var(--sp)"><strong id="hPlaying">0</strong>&nbsp;🎮</div>
       <div class="spill" style="color:var(--fav)"><strong id="hFav">0</strong>&nbsp;⭐</div>
-      <span class="ver-badge" id="verBadge">v1.1.1</span>
+      <span class="ver-badge" id="verBadge">v1.1.2</span>
     </div>
   </div>
 
@@ -775,7 +779,10 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
         </select>
       </div>
       <div>
-        <div class="msl">3. ジャンル（複数選択可）</div>
+        <div class="genre-head">
+          <div class="msl">3. ジャンル（複数選択可）</div>
+          <button type="button" class="btn-clear-genres" onclick="clearModalGenres()">× すべてのチェックを外す</button>
+        </div>
         <div class="ggrid" id="mGGrid"></div>
         <div class="other-row">
           <input class="other-in" id="mOther" placeholder="その他ジャンル（自由入力）">
@@ -831,9 +838,12 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
 
 <script>
 var PC_RAW = [];
-var APP_VERSION='1.1.1';
-var APP_RELEASE='2026/07/08';
+var APP_VERSION='1.1.2';
+var APP_RELEASE='2026/07/15';
 var CHANGELOG=[
+  {v:'1.1.2',d:'2026/07/15',items:[
+    '登録・編集画面のジャンル一覧に「すべてのチェックを外す」ボタンを追加'
+  ]},
   {v:'1.1.1',d:'2026/07/08',items:[
     'バックアップJSON(圧縮形式)から復元できない不具合を修正',
     '「全ユーザーデータ削除」でゲームリストまで消えていた不具合を修正',
@@ -2092,6 +2102,11 @@ function updMStar(n){var stars=document.querySelectorAll('.mstar');for(var i=0;i
 function setMStat(s){mStat=s;updMStat(s);}
 function updMStat(s){var opts=document.querySelectorAll('.sopt');for(var i=0;i<opts.length;i++){opts[i].className='sopt';if(opts[i].getAttribute('data-s')===s)opts[i].classList.add(SCLS[s]||'au');}}
 function togMG(el,g){if(mGenres[g]){delete mGenres[g];el.classList.remove('active');}else{mGenres[g]=1;el.classList.add('active');}}
+function clearModalGenres(){
+  mGenres={};
+  var items=document.querySelectorAll('#mGGrid .mgn');
+  for(var i=0;i<items.length;i++)items[i].classList.remove('active');
+}
 function saveModal(){
   if(!mId)return;
   var u=getUD(mId);var g=null;for(var i=0;i<games.length;i++){if(games[i].id===mId){g=games[i];break;}}
