@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Game Library v1.1.2</title>
+<title>Game Library v1.1.3</title>
 <!-- App icons / PWA -->
-<link rel="icon" href="./favicon.ico?v=20260708" sizes="any">
-<link rel="icon" href="./icon.svg?v=20260708" type="image/svg+xml">
-<link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png?v=20260708">
-<link rel="icon" type="image/png" sizes="16x16" href="./favicon-16.png?v=20260708">
-<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=20260708">
-<link rel="manifest" href="./manifest.webmanifest?v=20260708">
+<link rel="icon" href="./favicon.ico?v=20260716" sizes="any">
+<link rel="icon" href="./icon.svg?v=20260716" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png?v=20260716">
+<link rel="icon" type="image/png" sizes="16x16" href="./favicon-16.png?v=20260716">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=20260716">
+<link rel="manifest" href="./manifest.webmanifest?v=20260716">
 <meta name="theme-color" content="#7C4DE0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -472,7 +472,7 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
       <div class="spill"><strong id="hTotal">0</strong>&nbsp;total</div>
       <div class="spill" style="color:var(--sp)"><strong id="hPlaying">0</strong>&nbsp;🎮</div>
       <div class="spill" style="color:var(--fav)"><strong id="hFav">0</strong>&nbsp;⭐</div>
-      <span class="ver-badge" id="verBadge">v1.1.2</span>
+      <span class="ver-badge" id="verBadge">v1.1.3</span>
     </div>
   </div>
 
@@ -838,9 +838,16 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
 
 <script>
 var PC_RAW = [];
-var APP_VERSION='1.1.2';
-var APP_RELEASE='2026/07/15';
+var APP_VERSION='1.1.3';
+var APP_RELEASE='2026/07/02';
 var CHANGELOG=[
+  {v:'1.1.3',d:'2026/07/16',items:[
+    '「全データ削除」がゲームリスト・評価・設定・メモ・実績を確実に削除するよう修正',
+    '「データを復元」を差分追加ではなく既存データの置き換え処理へ変更',
+    'IDのない旧形式CSVを繰り返し読み込んでも重複しないよう改善',
+    '削除済みゲームのユーザーデータが保存領域に残る不具合を修正',
+    'CSV/JSON復元時の旧形式互換性と入力チェックを強化'
+  ]},
   {v:'1.1.2',d:'2026/07/15',items:[
     '登録・編集画面のジャンル一覧に「すべてのチェックを外す」ボタンを追加'
   ]},
@@ -1036,7 +1043,11 @@ function parsePlayTime(v){
   return parseInt(v,10)||0;
 }
 function isPlayniteHeader(hdrs){
-  return hIndex(hdrs,['タイトル','名前','Name','Title','Game'])>=0 && hIndex(hdrs,['id'])<0;
+  var hasTitle=hIndex(hdrs,['タイトル','名前','Name','Title','Game'])>=0;
+  var hasId=hIndex(hdrs,['id','ID'])>=0;
+  // 旧バックアップCSVはID列がない場合がある。評価・状態・メモ等の列があればPlayniteではなく本アプリ形式として扱う。
+  var hasAppData=hIndex(hdrs,['status','playStatus','プレイ状態','fav','favorite','お気に入り','stars','rating','自己評価','評価','memo','メモ','acquisitionMethod','acq','入手方法','購入方法','storeUrl','URL'])>=0;
+  return hasTitle&&!hasId&&!hasAppData;
 }
 function detectPlaynitePlatform(row,hdrs){
   var vals=[
@@ -1062,7 +1073,8 @@ function applyDecor(){
 function applyTheme(){
   var t=CFG.theme;
   if(t==='system')t=window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';
-  document.body.className=(t==='light')?'light':'';
+  // className全置換だと「装飾なし」設定のdecor-offまで消えるため、lightだけを切り替える
+  document.body.classList.toggle('light',t==='light');
 }
 function applyPanels(){
   var map={
@@ -1181,6 +1193,28 @@ function renderTrophies(){
 /* ── STORAGE ── */
 var SK='jgl_v6';
 var GK='jgl_games';
+function removeProgressStorage(){
+  try{
+    var keys=[];
+    for(var i=0;i<localStorage.length;i++){
+      var k=localStorage.key(i);
+      if(k==='jgl_tr'||/^jgl_v\d+$/.test(k||''))keys.push(k);
+    }
+    // localStorage.keyが使えない環境でも現行キーは確実に削除
+    keys.push(SK,'jgl_tr');
+    for(var j=0;j<keys.length;j++)localStorage.removeItem(keys[j]);
+  }catch(e){}
+}
+function removeAllAppStorage(){
+  try{
+    var keys=[];
+    for(var i=0;i<localStorage.length;i++){
+      var k=localStorage.key(i);if(k&&k.indexOf('jgl_')===0)keys.push(k);
+    }
+    keys.push(SK,GK,CFG_KEY,'jgl_tr');
+    for(var j=0;j<keys.length;j++)localStorage.removeItem(keys[j]);
+  }catch(e){}
+}
 function autoMapGenres(rawGenreStr,u){
   var rawArr=rawGenreStr?rawGenreStr.split(','):[];
   var gks=Object.keys(AUTO_MAP);
@@ -1247,7 +1281,7 @@ function expandUD(d){
   var url=(d.url!==undefined)?(d.url||''):(d.u||'');
   var am=(d.am!==undefined)?!!d.am:false;
   var acq=normAcq(d.acq!==undefined?d.acq:d.aq);
-  return {genres:genres,og:d.og||'',st:st,fav:fav,stars:stars,url:url,pl:d.pl||'',ti:d.ti||'',am:am,memo:d.memo||'',acq:acq};
+  return {genres:genres,og:d.og||'',st:st,fav:fav,stars:stars,url:url,pl:d.pl||'',ti:d.ti||'',am:am,memo:(d.memo!==undefined?d.memo:(d.m||'')),acq:acq};
 }
 function load(){
   try{
@@ -1802,7 +1836,9 @@ function addGame(){
 /* ── DELETE ── */
 function deleteGame(id){
   for(var i=0;i<games.length;i++){if(games[i].id===id){games[i].deleted=true;break;}}
-  getUD(id).deleted=true;save();saveGames();
+  // ゲーム本体を削除したときは、孤立した評価・メモ等も保存領域から除去する
+  if(ud[id])delete ud[id];
+  save();saveGames();
   resetSmartRecs();buildSBs();updateHdr();renderDash();applyFilters();buildMemoSelect();
 }
 function deleteFromModal(){
@@ -2146,21 +2182,23 @@ function exportCSV(){
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='game_library_'+pad2(new Date().getMonth()+1)+pad2(new Date().getDate())+'.csv';a.click();
 }
-function importCSV(event){
+function importCSV(event,mode){
+  mode=mode||'merge';
   var file=event.target.files[0];if(!file)return;
   var reader=new FileReader();
   reader.onload=function(e){
     try{
       var text=e.target.result||'';
       if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);
-      if(/^\s*[\[{]/.test(text)){
-        importJSONBackup(text);
+      if(/^[\s]*[\[{]/.test(text)){
+        importJSONBackup(text,mode);
       }else{
-        importCSVText(text);
+        importCSVText(text,mode);
       }
     }catch(err){alert('エラー: '+err.message);}
     event.target.value='';
   };
+  reader.onerror=function(){alert('ファイルを読み込めませんでした。');event.target.value='';};
   reader.readAsText(file,'utf-8');
 }
 function csvRows(text){
@@ -2178,107 +2216,222 @@ function csvRows(text){
       row=[];
     }else cur+=c;
   }
+  if(inQ)throw new Error('CSVの引用符が閉じられていません');
   row.push(cur);
   if(row.some(function(v){return String(v).trim()!=='';}))rows.push(row);
   return rows;
 }
-function importJSONBackup(text){
-  var obj=JSON.parse(text),n=0;
-  if(Array.isArray(obj.games)){
-    for(var i=0;i<obj.games.length;i++){
-      var x=obj.games[i];if(!x||!x.id)continue;
-      var g=null;for(var k=0;k<games.length;k++){if(games[k].id===x.id){g=games[k];break;}}
-      if(!g){g={id:x.id,title:x.title||x.t||'?',rawG:x.rawG||x.rg||'',platform:normalizePlatformName(x.platform||x.pl||'Steam'),rd:x.rd||x.releaseDate||'',ad:x.ad||x.addDate||'',lp:x.lp||x.lastPlayed||'',pt:parseInt(x.pt||x.playTimeSec)||0,pc:parseInt(x.pc||x.playCount)||0,isC:String(x.id).indexOf('c_')===0,deleted:false};games.push(g);}
-      else{g.deleted=false;g.title=x.title||x.t||g.title;g.platform=normalizePlatformName(x.platform||x.pl||g.platform);}
-      n++;
-    }
-  }
-  var user=obj.ud||obj.userData||obj.data;
-  if(user&&typeof user==='object'){
-    var ids=Object.keys(user);
-    for(var i=0;i<ids.length;i++){ud[ids[i]]=expandUD(user[ids[i]]);n++;}
-  }
-  saveGames();save();resetSmartRecs();buildSBs();applyFilters();renderDash();updateHdr();buildMemoSelect();
-  alert(n+' 件復元しました');
+function parseStoredJSON(v){
+  if(typeof v!=='string')return v;
+  try{return JSON.parse(v);}catch(e){return null;}
 }
-function importCSVText(text){
+function normalizeImportKey(v){return String(v||'').trim().toLowerCase().replace(/[\s　]+/g,' ');}
+function gameTitlePlatformKey(title,platform){return normalizeImportKey(title)+'\u0001'+normalizeImportKey(normalizePlatformName(platform||'Steam'));}
+function buildGameIndexes(){
+  var byId={},byKey={};
+  for(var i=0;i<games.length;i++){
+    var g=games[i];if(!g||g.deleted)continue;
+    if(g.id!==undefined&&g.id!==null&&String(g.id)!=='')byId[String(g.id)]=g;
+    var key=gameTitlePlatformKey(g.title,g.platform);if(key&&!byKey[key])byKey[key]=g;
+  }
+  return{byId:byId,byKey:byKey};
+}
+function uniqueImportedId(prefix,index,byId){
+  var base=(prefix||'c')+'_'+Date.now()+'_'+index, id=base, n=1;
+  while(byId[id]){id=base+'_'+n;n++;}
+  return id;
+}
+function registerImportedGenre(name){
+  name=cleanGenreName(name);if(!name)return;
+  var hi=(CFG.hiddenGenres||[]).indexOf(name);if(hi>=0)CFG.hiddenGenres.splice(hi,1);
+  if(DEFAULT_GENRES.indexOf(name)<0&&CFG.customGenres.indexOf(name)<0)CFG.customGenres.push(name);
+}
+function finishDataImport(){
+  normalizeGenres();saveCFG();saveGames();save();resetSmartRecs();
+  buildAddGenres();buildSBs();applyFilters();renderDash();updateHdr();buildMemoSelect();
+}
+function looksLikeUserDataMap(obj){
+  if(!obj||typeof obj!=='object'||Array.isArray(obj))return false;
+  var keys=Object.keys(obj);if(!keys.length)return false;
+  var hits=0;
+  for(var i=0;i<keys.length;i++){
+    var v=obj[keys[i]];
+    if(v&&typeof v==='object'&&!Array.isArray(v)&&(v.g!==undefined||v.genres!==undefined||v.st!==undefined||v.memo!==undefined||v.aq!==undefined||v.acq!==undefined))hits++;
+  }
+  return hits>0;
+}
+function normalizeGameArray(src){
+  if(!src)return null;
+  src=parseStoredJSON(src);
+  if(Array.isArray(src))return src;
+  if(src&&typeof src==='object'){
+    var out=[],keys=Object.keys(src);
+    for(var i=0;i<keys.length;i++){
+      var x=src[keys[i]];
+      if(!x||typeof x!=='object')continue;
+      var copy={};for(var k in x)copy[k]=x[k];
+      if(copy.id===undefined||copy.id===null||copy.id==='')copy.id=keys[i];
+      out.push(copy);
+    }
+    return out;
+  }
+  return null;
+}
+function importJSONBackup(text,mode){
+  mode=mode||'merge';
+  var obj=JSON.parse(text),gameSrc=null,userSrc=null;
+  if(Array.isArray(obj))gameSrc=obj;
+  else if(obj&&typeof obj==='object'){
+    gameSrc=normalizeGameArray(obj.games||obj.gameList||obj[GK]||obj.jgl_games);
+    userSrc=parseStoredJSON(obj.ud||obj.userData||obj.data||obj[SK]||obj.jgl_v6);
+    if(!gameSrc&&!userSrc&&looksLikeUserDataMap(obj))userSrc=obj;
+  }
+  if(!gameSrc&&(!userSrc||typeof userSrc!=='object'))throw new Error('対応しているバックアップデータが見つかりません');
+
+  var oldGames=games,oldUd=ud;
+  var oldCustom=CFG.customGenres.slice(),oldHidden=CFG.hiddenGenres.slice();
+  try{
+    // ゲーム一覧を含む完全バックアップは一覧ごと置換。ユーザーデータだけの旧JSONは一覧を残して評価等だけ置換する。
+    if(mode==='replace'){
+      if(gameSrc)games=[];
+      ud={};
+    }
+    var idx=buildGameIndexes(),added=0,updated=0,userCount=0;
+    if(gameSrc){
+      for(var i=0;i<gameSrc.length;i++){
+        var x=gameSrc[i];if(!x||typeof x!=='object')continue;
+        var rawId=x.id!==undefined&&x.id!==null?String(x.id):'';
+        var title=String(x.title||x.t||'').trim();if(!title)continue;
+        var platform=normalizePlatformName(x.platform||x.pl||'Steam');
+        var g=rawId?idx.byId[rawId]:null;
+        if(!g)g=idx.byKey[gameTitlePlatformKey(title,platform)];
+        if(!g){
+          var id=rawId||uniqueImportedId('json',i,idx.byId);
+          g={id:id,title:title,rawG:x.rawG||x.rg||'',platform:platform,rd:x.rd||x.releaseDate||'',ad:x.ad||x.addDate||'',lp:x.lp||x.lastPlayed||'',pt:parseInt(x.pt||x.playTimeSec,10)||0,pc:parseInt(x.pc||x.playCount,10)||0,isC:String(id).indexOf('c_')===0,deleted:false};
+          games.push(g);idx.byId[id]=g;idx.byKey[gameTitlePlatformKey(title,platform)]=g;added++;
+        }else{
+          g.deleted=false;g.title=title||g.title;g.rawG=x.rawG||x.rg||g.rawG||'';g.platform=platform||g.platform;
+          g.rd=x.rd||x.releaseDate||g.rd||'';g.ad=x.ad||x.addDate||g.ad||'';g.lp=x.lp||x.lastPlayed||g.lp||'';
+          if(x.pt!==undefined||x.playTimeSec!==undefined)g.pt=parseInt(x.pt||x.playTimeSec,10)||0;
+          if(x.pc!==undefined||x.playCount!==undefined)g.pc=parseInt(x.pc||x.playCount,10)||0;
+          updated++;
+        }
+      }
+    }
+    if(userSrc&&typeof userSrc==='object'){
+      var ids=Object.keys(userSrc);
+      for(var j=0;j<ids.length;j++){
+        var d=expandUD(userSrc[ids[j]]);ud[ids[j]]=d;userCount++;
+        var gs=Object.keys(d.genres);for(var gi=0;gi<gs.length;gi++)registerImportedGenre(gs[gi]);
+      }
+    }
+    finishDataImport();
+    var total=added+updated;
+    if(mode==='replace')alert((total||userCount)+' 件復元しました（既存データを置き換えました）');
+    else alert((total||userCount)+' 件インポートしました');
+  }catch(err){
+    games=oldGames;ud=oldUd;CFG.customGenres=oldCustom;CFG.hiddenGenres=oldHidden;normalizeGenres();
+    throw err;
+  }
+}
+function importCSVText(text,mode){
+  mode=mode||'merge';
   var rows=csvRows(text);if(!rows.length)throw new Error('CSVにデータがありません');
   var hdrs=rows[0].map(function(h){return String(h||'').replace(/^\ufeff/,'').trim();});
   var isPlaynite=isPlayniteHeader(hdrs);
-  var n=0,skipped=0;
-  if(isPlaynite){
-    var titleMap={};
-    for(var i=0;i<games.length;i++){if(!games[i].deleted)titleMap[games[i].title.trim().toLowerCase()]=games[i];}
-    var ts=Date.now();
-    for(var i=1;i<rows.length;i++){
-      var row=rows[i];
-      var title=cell(row,hdrs,['タイトル','名前','Name','Title','Game']).trim();
-      if(!title)continue;
-      var src=detectPlaynitePlatform(row,hdrs);
-      var key=title.toLowerCase();
-      var pri=PRIORITY[src]||99;
-      var rawG=cell(row,hdrs,['ジャンル','Genres','Genre','Categories','カテゴリ']).trim();
-      var existing=titleMap[key];
-      if(existing){
-        var exPri=PRIORITY[normalizePlatformName(existing.platform)]||99;
-        if(pri<exPri){existing.platform=src;getUD(existing.id).pl=src;n++;}
-        else skipped++;
-        if(rawG&&!existing.rawG)existing.rawG=rawG;
-        continue;
+  var oldGames=games,oldUd=ud;
+  var oldCustom=CFG.customGenres.slice(),oldHidden=CFG.hiddenGenres.slice();
+  try{
+    if(mode==='replace'){games=[];ud={};}
+    var idx=buildGameIndexes(),added=0,updated=0,skipped=0;
+    if(isPlaynite){
+      var titleMap={};
+      for(var i=0;i<games.length;i++){if(!games[i].deleted)titleMap[normalizeImportKey(games[i].title)]=games[i];}
+      for(var i=1;i<rows.length;i++){
+        var row=rows[i];
+        var title=cell(row,hdrs,['タイトル','名前','Name','Title','Game']).trim();
+        if(!title)continue;
+        var src=detectPlaynitePlatform(row,hdrs);
+        var key=normalizeImportKey(title);
+        var pri=PRIORITY[src]||99;
+        var rawG=cell(row,hdrs,['ジャンル','Genres','Genre','Categories','カテゴリ']).trim();
+        var existing=titleMap[key];
+        if(existing){
+          var exPri=PRIORITY[normalizePlatformName(existing.platform)]||99;
+          if(pri<exPri){existing.platform=src;getUD(existing.id).pl=src;updated++;}
+          else skipped++;
+          if(rawG&&!existing.rawG)existing.rawG=rawG;
+          continue;
+        }
+        var id=uniqueImportedId('pn',i,idx.byId);
+        var g={id:id,title:title,rawG:rawG,platform:src,
+          rd:cell(row,hdrs,['発売日','ReleaseDate','Release Date','Released','Release']).trim(),
+          ad:cell(row,hdrs,['追加日','Added','DateAdded','Date Added','追加日時']).trim(),
+          lp:cell(row,hdrs,['最後のプレイ','LastPlayed','Last Played','最終プレイ']).trim(),
+          pt:parsePlayTime(cell(row,hdrs,['プレイ時間','PlayTime','Play Time','Time Played'])),
+          pc:parseInt(cell(row,hdrs,['プレイ回数','PlayCount','Play Count','Times Played']),10)||0,
+          isC:false,deleted:false};
+        games.push(g);idx.byId[id]=g;idx.byKey[gameTitlePlatformKey(title,src)]=g;titleMap[key]=g;
+        var u=getUD(id);autoMapGenres(rawG,u);u.am=true;
+        var mapped=Object.keys(u.genres);for(var mi=0;mi<mapped.length;mi++)registerImportedGenre(mapped[mi]);
+        added++;
       }
-      var id='pn_'+ts+'_'+i;
-      var g={id:id,title:title,rawG:rawG,platform:src,
-        rd:cell(row,hdrs,['発売日','ReleaseDate','Release Date','Released','Release']).trim(),
-        ad:cell(row,hdrs,['追加日','Added','DateAdded','Date Added','追加日時']).trim(),
-        lp:cell(row,hdrs,['最後のプレイ','LastPlayed','Last Played','最終プレイ']).trim(),
-        pt:parsePlayTime(cell(row,hdrs,['プレイ時間','PlayTime','Play Time','Time Played'])),
-        pc:parseInt(cell(row,hdrs,['プレイ回数','PlayCount','Play Count','Times Played']))||0,
-        isC:false,deleted:false};
-      games.push(g);titleMap[key]=g;
-      var u=getUD(id);autoMapGenres(rawG,u);u.am=true;n++;
-    }
-  }else{
-    for(var i=1;i<rows.length;i++){
-      var row=rows[i];
-      var id=cell(row,hdrs,['id','ID']);
-      var title=cell(row,hdrs,['title','タイトル','Name','名前']);
-      if(!id&&title)id='c_'+Date.now()+'_'+i;
-      if(!id)continue;
-      var g=null;for(var k=0;k<games.length;k++){if(games[k].id===id){g=games[k];break;}}
-      var platformCell=cellIf(row,hdrs,['platform','プラットフォーム','Platform']);
-      var platform=normalizePlatformName(platformCell||'Steam');
-      if(!g){
-        g={id:id,title:title||'?',rawG:cellIf(row,hdrs,['rawG','playniteGenre','Playniteジャンル'])||'',platform:platform,
-          rd:cellIf(row,hdrs,['releaseDate','発売日','ReleaseDate','Release Date'])||'',
-          ad:cellIf(row,hdrs,['addDate','追加日','Added','DateAdded'])||'',
-          lp:cellIf(row,hdrs,['lastPlayed','最終プレイ','LastPlayed','Last Played'])||'',
-          pt:parsePlayTime(cellIf(row,hdrs,['playTimeSec','プレイ時間','PlayTime','Play Time'])||''),
-          pc:parseInt(cellIf(row,hdrs,['playCount','プレイ回数','PlayCount','Play Count'])||'')||0,
-          isC:String(id).indexOf('c_')===0,deleted:false};
-        games.push(g);
-      }else{
-        g.deleted=false;if(title)g.title=title;if(platformCell!==undefined)g.platform=platform;
-        var rd=cellIf(row,hdrs,['releaseDate','発売日','ReleaseDate','Release Date']);if(rd)g.rd=rd;
-        var ad=cellIf(row,hdrs,['addDate','追加日','Added','DateAdded']);if(ad)g.ad=ad;
-        var lp=cellIf(row,hdrs,['lastPlayed','最終プレイ','LastPlayed','Last Played']);if(lp)g.lp=lp;
-        var pt=cellIf(row,hdrs,['playTimeSec','プレイ時間','PlayTime','Play Time']);if(pt)g.pt=parsePlayTime(pt)||g.pt;
-        var pc=cellIf(row,hdrs,['playCount','プレイ回数','PlayCount','Play Count']);if(pc)g.pc=parseInt(pc)||g.pc;
+    }else{
+      if(hIndex(hdrs,['title','タイトル','Name','名前'])<0)throw new Error('タイトル列が見つかりません');
+      for(var i=1;i<rows.length;i++){
+        var row=rows[i];
+        var rawId=String(cell(row,hdrs,['id','ID'])||'').trim();
+        var title=String(cell(row,hdrs,['title','タイトル','Name','名前'])||'').trim();
+        if(!rawId&&!title)continue;
+        var platformCell=cellIf(row,hdrs,['platform','プラットフォーム','Platform']);
+        var platform=normalizePlatformName(platformCell||'Steam');
+        var g=rawId?idx.byId[rawId]:null;
+        if(!g&&title)g=idx.byKey[gameTitlePlatformKey(title,platform)];
+        if(!g){
+          var id=rawId||uniqueImportedId('c',i,idx.byId);
+          g={id:id,title:title||'?',rawG:cellIf(row,hdrs,['rawG','playniteGenre','Playniteジャンル'])||'',platform:platform,
+            rd:cellIf(row,hdrs,['releaseDate','発売日','ReleaseDate','Release Date'])||'',
+            ad:cellIf(row,hdrs,['addDate','追加日','Added','DateAdded'])||'',
+            lp:cellIf(row,hdrs,['lastPlayed','最終プレイ','LastPlayed','Last Played'])||'',
+            pt:parsePlayTime(cellIf(row,hdrs,['playTimeSec','プレイ時間','PlayTime','Play Time'])||''),
+            pc:parseInt(cellIf(row,hdrs,['playCount','プレイ回数','PlayCount','Play Count'])||'',10)||0,
+            isC:String(id).indexOf('c_')===0,deleted:false};
+          games.push(g);idx.byId[id]=g;idx.byKey[gameTitlePlatformKey(g.title,g.platform)]=g;added++;
+        }else{
+          g.deleted=false;if(title)g.title=title;if(platformCell!==undefined)g.platform=platform;
+          var rd=cellIf(row,hdrs,['releaseDate','発売日','ReleaseDate','Release Date']);if(rd!==undefined&&rd!=='')g.rd=rd;
+          var ad=cellIf(row,hdrs,['addDate','追加日','Added','DateAdded']);if(ad!==undefined&&ad!=='')g.ad=ad;
+          var lp=cellIf(row,hdrs,['lastPlayed','最終プレイ','LastPlayed','Last Played']);if(lp!==undefined&&lp!=='')g.lp=lp;
+          var pt=cellIf(row,hdrs,['playTimeSec','プレイ時間','PlayTime','Play Time']);if(pt!==undefined&&pt!=='')g.pt=parsePlayTime(pt);
+          var pc=cellIf(row,hdrs,['playCount','プレイ回数','PlayCount','Play Count']);if(pc!==undefined&&pc!=='')g.pc=parseInt(pc,10)||0;
+          updated++;
+        }
+        idx.byId[String(g.id)]=g;idx.byKey[gameTitlePlatformKey(g.title,g.platform)]=g;
+        var u=getUD(g.id);u.pl=g.platform;
+        var genres=cellIf(row,hdrs,['genres','ジャンル']);
+        if(genres!==undefined&&genres!==''){
+          u.genres={};var ga=genres.split('|');
+          for(var gi=0;gi<ga.length;gi++){var gn=cleanGenreName(ga[gi]);if(gn){u.genres[gn]=1;registerImportedGenre(gn);}}
+        }
+        var og=cellIf(row,hdrs,['otherGenre','その他ジャンル']);if(og!==undefined)u.og=og;
+        var st=cellIf(row,hdrs,['status','playStatus','プレイ状態']);if(st)u.st=st==='unplayed'?'unchecked':st;
+        var fav=cellIf(row,hdrs,['fav','favorite','お気に入り']);if(fav!==undefined&&fav!=='')u.fav=parseBool(fav);
+        var stars=cellIf(row,hdrs,['stars','rating','自己評価','評価']);if(stars!==undefined&&stars!=='')u.stars=parseInt(stars,10)||0;
+        var url=cellIf(row,hdrs,['storeUrl','url','URL','ストアURL']);if(url!==undefined)u.url=url;
+        var memo=cellIf(row,hdrs,['memo','メモ']);if(memo!==undefined)u.memo=memo;
+        var acq=cellIf(row,hdrs,['acquisitionMethod','acq','入手方法','購入方法']);if(acq!==undefined&&acq!=='')u.acq=normAcq(acq);
+        u.am=true;
       }
-      var u=getUD(id);u.pl=g.platform;
-      var genres=cellIf(row,hdrs,['genres','ジャンル']);
-      if(genres!==undefined&&genres!==''){u.genres={};var ga=genres.split('|');for(var gi=0;gi<ga.length;gi++){var gn=cleanGenreName(ga[gi]);if(gn)u.genres[gn]=1;}}
-      var og=cellIf(row,hdrs,['otherGenre','その他ジャンル']);if(og!==undefined&&og!=='')u.og=og;
-      var st=cellIf(row,hdrs,['status','playStatus','プレイ状態']);if(st)u.st=st==='unplayed'?'unchecked':st;
-      var fav=cellIf(row,hdrs,['fav','favorite','お気に入り']);if(fav!==undefined&&fav!=='')u.fav=parseBool(fav);
-      var stars=cellIf(row,hdrs,['stars','rating','自己評価','評価']);if(stars!==undefined&&stars!=='')u.stars=parseInt(stars)||0;
-      var url=cellIf(row,hdrs,['storeUrl','url','URL','ストアURL']);if(url!==undefined)u.url=url;
-      var memo=cellIf(row,hdrs,['memo','メモ']);if(memo!==undefined)u.memo=memo;
-      var acq=cellIf(row,hdrs,['acquisitionMethod','acq','入手方法','購入方法']);if(acq!==undefined&&acq!=='')u.acq=normAcq(acq);
-      u.am=true;n++;
     }
+    if(!added&&!updated&&!skipped&&rows.length>1)throw new Error('読み込めるゲームデータがありません');
+    finishDataImport();
+    var total=added+updated;
+    if(mode==='replace')alert(total+' 件復元しました（既存データを置き換えました）');
+    else alert(total+' 件インポートしました'+(skipped?'（重複スキップ: '+skipped+' 件）':'')+(updated?'（更新: '+updated+' 件）':''));
+  }catch(err){
+    games=oldGames;ud=oldUd;CFG.customGenres=oldCustom;CFG.hiddenGenres=oldHidden;normalizeGenres();
+    throw err;
   }
-  saveGames();save();resetSmartRecs();buildSBs();applyFilters();renderDash();updateHdr();buildMemoSelect();
-  alert(n+' 件インポートしました'+(skipped?'（重複スキップ: '+skipped+' 件）':''));
 }
 function csvRow(line){
   var r=[],inQ=false,cur='';
@@ -2442,7 +2595,7 @@ function renderSettingsPage(){
   var r6b=makeRow('CSVインポート','CSVファイルから差分データを読み込み');
   var impLbl=document.createElement('label');impLbl.className='btnsm';impLbl.style.cursor='pointer';impLbl.textContent='📥 インポート';
   var impInp=document.createElement('input');impInp.type='file';impInp.accept='.csv,.json';impInp.style.display='none';
-  impInp.addEventListener('change',importCSV);impLbl.appendChild(impInp);
+  impInp.addEventListener('change',function(e){importCSV(e,'merge');});impLbl.appendChild(impInp);
   r6b.ctrl.appendChild(impLbl);s6.rows.appendChild(r6b.row);
   // Backup
   var r6c=makeRow('バックアップ先フォルダ','一度選択すれば次回から自動保存 (Chrome/Edge)');
@@ -2459,23 +2612,36 @@ function renderSettingsPage(){
   if(CFG.backupLastDate){var bld=document.createElement('div');bld.style.cssText='font-size:10px;color:var(--sc);text-align:right';bld.textContent='最終: '+CFG.backupLastDate;r6d.ctrl.appendChild(bld);}
   var bkBtn=document.createElement('button');bkBtn.className='btnsm';bkBtn.style.marginLeft='6px';bkBtn.textContent='💾 バックアップ';bkBtn.addEventListener('click',doBackup);
   r6d.ctrl.appendChild(bkBtn);s6.rows.appendChild(r6d.row);
-  var r6e=makeRow('データを復元','バックアップCSV/JSONからデータを読み込む');
+  var r6e=makeRow('データを復元','バックアップCSV/JSONで現在のゲームデータを置き換える');
   var restLbl=document.createElement('label');restLbl.className='btnsm';restLbl.style.cursor='pointer';restLbl.textContent='📂 復元';
   var restInp=document.createElement('input');restInp.type='file';restInp.accept='.csv,.json';restInp.style.display='none';
-  restInp.addEventListener('change',importCSV);restLbl.appendChild(restInp);
+  restInp.addEventListener('change',function(e){importCSV(e,'replace');});restLbl.appendChild(restInp);
   r6e.ctrl.appendChild(restLbl);s6.rows.appendChild(r6e.row);
   el.appendChild(s6.sec);
 
   // ── リセット ──
   var s7=makeSec('⚠️','データリセット');
-  var r7=makeRow('全ユーザーデータ削除','評価・ジャンル・状態・メモをすべてリセット');
-  var delBtn=document.createElement('button');delBtn.className='btnsm btn-danger';delBtn.textContent='🗑 全削除';
-  delBtn.addEventListener('click',function(){
-    showConfirm('全ユーザーデータを削除しますか？\nゲームリストは残りますが評価・状態・メモは消去されます。',function(){
-      localStorage.removeItem(SK);localStorage.removeItem('jgl_tr');location.reload();
+  var r7a=makeRow('評価・状態をリセット','ゲームリストと設定を残し、評価・ジャンル・状態・メモ・実績だけを削除');
+  var resetBtn=document.createElement('button');resetBtn.className='btnsm btn-danger';resetBtn.textContent='↺ リセット';
+  resetBtn.addEventListener('click',function(){
+    showConfirm('評価・ジャンル・状態・メモ・実績をリセットしますか？\nゲームリストとアプリ設定は残ります。',function(){
+      ud={};removeProgressStorage();
+      resetSmartRecs();buildSBs();applyFilters();renderDash();updateHdr();buildMemoSelect();
+      showToast({ico:'✅',name:'リセット完了',desc:'ゲームリストと設定は残しています'});
     });
   });
-  r7.ctrl.appendChild(delBtn);s7.rows.appendChild(r7.row);
+  r7a.ctrl.appendChild(resetBtn);s7.rows.appendChild(r7a.row);
+
+  var r7b=makeRow('全データ削除','ゲームリスト・評価・設定・メモ・実績をすべて削除');
+  var delBtn=document.createElement('button');delBtn.className='btnsm btn-danger';delBtn.textContent='🗑 全削除';
+  delBtn.addEventListener('click',function(){
+    showConfirm('Game Libraryの全データを削除しますか？\nゲームリスト・評価・設定・メモ・実績がすべて消えます。この操作は元に戻せません。',function(){
+      games=[];ud={};
+      removeAllAppStorage();
+      location.reload();
+    });
+  });
+  r7b.ctrl.appendChild(delBtn);s7.rows.appendChild(r7b.row);
   el.appendChild(s7.sec);
 
   // ── アプリ情報・更新履歴 ──
