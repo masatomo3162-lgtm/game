@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Game Library v1.1.3</title>
+<title>Game Library v1.2.1</title>
 <!-- App icons / PWA -->
 <link rel="icon" href="./favicon.ico?v=20260716" sizes="any">
 <link rel="icon" href="./icon.svg?v=20260716" type="image/svg+xml">
@@ -68,6 +68,16 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fn);font-size:14px;o
 .dash-row{display:grid;gap:10px;}
 .r2{grid-template-columns:1fr 1fr;}
 .r3{grid-template-columns:1fr 1fr 1fr;}
+.rp3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr));}
+.dcard-hr{display:flex;align-items:center;gap:6px;min-width:0;}
+.dsel{background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:2px 4px;color:var(--tx);font-size:10px;outline:none;font-family:var(--fn);max-width:130px;}
+.gtag-jp{background:rgba(52,211,153,.13);color:#34d399;border:1px solid rgba(52,211,153,.35);}
+.add-jp{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--dim);white-space:nowrap;cursor:pointer;user-select:none;}
+.ex-list{display:flex;flex-direction:column;gap:5px;max-height:260px;overflow-y:auto;padding:2px 0;}
+.ex-row{display:flex;align-items:center;gap:8px;background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:6px 9px;font-size:11px;}
+.ex-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;}
+.ex-meta{color:var(--mt);font-size:10px;white-space:nowrap;}
+@media(max-width:640px){.ex-meta{display:none;}}
 .dcard{background:var(--sf);border:1px solid var(--bd);border-radius:var(--radius);overflow:hidden;transition:background .2s,border-color .2s;}
 .dcard-h{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--bd);}
 .dcard-t{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);}
@@ -472,7 +482,7 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
       <div class="spill"><strong id="hTotal">0</strong>&nbsp;total</div>
       <div class="spill" style="color:var(--sp)"><strong id="hPlaying">0</strong>&nbsp;🎮</div>
       <div class="spill" style="color:var(--fav)"><strong id="hFav">0</strong>&nbsp;⭐</div>
-      <span class="ver-badge" id="verBadge">v1.1.3</span>
+      <span class="ver-badge" id="verBadge">v1.2.1</span>
     </div>
   </div>
 
@@ -536,13 +546,17 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
           <div class="hero-sub">積みゲーを、思い出に変えよう。</div>
         </div>
       </div>
-      <div class="dash-row r2" id="panel-playing-favs">
+      <div class="dash-row rp3" id="panel-playing-favs">
         <div class="dcard" id="panel-playing">
-          <div class="dcard-h"><span class="dcard-t">🎮 プレイ中</span><span class="dcard-c" id="cntPlaying">0</span></div>
+          <div class="dcard-h"><span class="dcard-t">🎮 プレイ中</span><span class="dcard-hr"><select class="dsel" id="dashPlayingGenre" onchange="onDashGenreChange('playing',this)"></select><span class="dcard-c" id="cntPlaying">0</span></span></div>
           <div class="dcard-b"><div class="mlist" id="dashPlaying"></div></div>
         </div>
+        <div class="dcard" id="panel-planned">
+          <div class="dcard-h"><span class="dcard-t">📋 プレイ予定</span><span class="dcard-hr"><select class="dsel" id="dashPlannedGenre" onchange="onDashGenreChange('planned',this)"></select><span class="dcard-c" id="cntPlanned">0</span></span></div>
+          <div class="dcard-b"><div class="mlist" id="dashPlanned"></div></div>
+        </div>
         <div class="dcard" id="panel-favs">
-          <div class="dcard-h"><span class="dcard-t">⭐ お気に入り</span><span class="dcard-c" id="cntFav">0</span></div>
+          <div class="dcard-h"><span class="dcard-t">⭐ お気に入り</span><span class="dcard-hr"><select class="dsel" id="dashFavGenre" onchange="onDashGenreChange('fav',this)"></select><span class="dcard-c" id="cntFav">0</span></span></div>
           <div class="dcard-b"><div class="mlist" id="dashFavs"></div></div>
         </div>
       </div>
@@ -612,6 +626,7 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
               <option value="bundle">🎀 バンドル</option>
               <option value="unknown" selected>❓ 不明</option>
             </select>
+            <label class="add-jp"><input type="checkbox" id="addJp"> 🇯🇵 日本語対応あり</label>
             <button class="btn-add" onclick="addGame()">追加</button>
           </div>
           <div class="addex">
@@ -811,6 +826,13 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
           <label class="flbl" for="mFav">⭐ お気に入りに登録</label>
         </div>
       </div>
+      <div>
+        <div class="msl">7. 日本語対応</div>
+        <div class="frow">
+          <input type="checkbox" class="fchk" id="mJp">
+          <label class="flbl" for="mJp">🇯🇵 日本語対応あり</label>
+        </div>
+      </div>
     </div>
     <div class="mftr">
       <button class="mftr-del" onclick="deleteFromModal()">🗑 削除</button>
@@ -838,9 +860,25 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
 
 <script>
 var PC_RAW = [];
-var APP_VERSION='1.1.3';
+var APP_VERSION='1.2.1';
 var APP_RELEASE='2026/07/02';
 var CHANGELOG=[
+  {v:'1.2.1',d:'2026/07/18',items:[
+    'Favorite／お気に入り列を含むPlaynite CSVを本アプリのバックアップCSVと誤判定する不具合を修正',
+    'Playnite CSVの形式判定をSource・Library・PlayTime・PlayCount等の固有列優先へ改善',
+    '削除済みゲームの除外リストがFavorite列付きPlaynite CSVでも確実に適用されるよう修正',
+    'ダッシュボードのジャンル絞り込み候補に「その他ジャンル」の自由入力値を追加'
+  ]},
+  {v:'1.2.0',d:'2026/07/18',items:[
+    '手動削除したゲームがPlaynite CSV再読み込みで復活しないよう除外リストを追加',
+    '設定画面に「CSV取込除外リスト」の確認・除外解除・全解除機能を追加',
+    'Playnite CSV読込結果に新規・更新・重複スキップ・削除済み除外の件数表示を追加',
+    'ゲームごとに「日本語対応あり」を記録できるチェックボックスを追加（登録・編集・一覧・CSV対応）',
+    '積みゲー消化率の計算とグラフに「プレイ中」を追加',
+    'ダッシュボードに「プレイ予定」パネルを追加し3列レスポンシブ表示に変更',
+    'プレイ中・プレイ予定・お気に入りにジャンル絞り込みを追加（タイトル昇順表示）',
+    'CSV・保存データ・旧バックアップの互換性を維持'
+  ]},
   {v:'1.1.3',d:'2026/07/16',items:[
     '「全データ削除」がゲームリスト・評価・設定・メモ・実績を確実に削除するよう修正',
     '「データを復元」を差分追加ではなく既存データの置き換え処理へ変更',
@@ -939,7 +977,7 @@ var CFG_KEY = 'jgl_cfg';
 var CFG = {
   theme:'dark',
   startTab:'dashboard',
-  panels:{playing:1,favs:1,today:1,interest:1,rec:1,charts:1,acqChart:1,ranking:1,trophy:1,add:1,memo:1},
+  panels:{playing:1,planned:1,favs:1,today:1,interest:1,rec:1,charts:1,acqChart:1,ranking:1,trophy:1,add:1,memo:1},
   notify:1,
   randomFrom:'backlog',
   backupFolderName:'',
@@ -1034,6 +1072,7 @@ function hIndex(hdrs,aliases){
 function cell(row,hdrs,aliases){var idx=hIndex(hdrs,aliases);return idx>=0?(row[idx]||''):'';}
 function cellIf(row,hdrs,aliases){var idx=hIndex(hdrs,aliases);return idx>=0?(row[idx]||''):undefined;}
 function parseBool(v){v=String(v||'').trim().toLowerCase();return v==='1'||v==='true'||v==='yes'||v==='on'||v==='⭐'||v==='お気に入り';}
+function parseJpFlag(v){var s=String(v||'').trim();return parseBool(s)||s==='あり'||s==='対応'||s==='日本語'||s==='○'||s==='◯';}
 function parsePlayTime(v){
   v=String(v||'').trim();if(!v)return 0;
   if(/^\d+$/.test(v))return parseInt(v,10)||0;
@@ -1044,10 +1083,39 @@ function parsePlayTime(v){
 }
 function isPlayniteHeader(hdrs){
   var hasTitle=hIndex(hdrs,['タイトル','名前','Name','Title','Game'])>=0;
-  var hasId=hIndex(hdrs,['id','ID'])>=0;
-  // 旧バックアップCSVはID列がない場合がある。評価・状態・メモ等の列があればPlayniteではなく本アプリ形式として扱う。
-  var hasAppData=hIndex(hdrs,['status','playStatus','プレイ状態','fav','favorite','お気に入り','stars','rating','自己評価','評価','memo','メモ','acquisitionMethod','acq','入手方法','購入方法','storeUrl','URL'])>=0;
-  return hasTitle&&!hasId&&!hasAppData;
+  if(!hasTitle)return false;
+
+  // Source・LibraryなどPlaynite固有性が高い列は、IDやFavorite列より優先して判定する。
+  // PlayniteのCSVにId・Favoriteが含まれていても、本アプリ形式と誤判定しないため。
+  var hasStrongPlaynite=hIndex(hdrs,[
+    'Source','ソース','Library','ライブラリ','Library Plugin','ライブラリプラグイン',
+    'CompletionStatus','Completion Status','完了状態','UserScore','User Score','ユーザースコア',
+    'IsInstalled','Installed','インストール済み'
+  ])>=0;
+  if(hasStrongPlaynite)return true;
+
+  // 本アプリ固有の列があれば、ID列の有無にかかわらずバックアップCSVとして扱う。
+  // Favorite・評価・メモはPlaynite側にも存在し得るため、形式判定には単独で使用しない。
+  var hasAppSpecific=hIndex(hdrs,[
+    'otherGenre','その他ジャンル','acquisitionMethod','acq','入手方法','購入方法',
+    'storeUrl','ストアURL','japaneseSupport','日本語対応','日本語対応あり'
+  ])>=0;
+  if(hasAppSpecific)return false;
+
+  // Playniteの利用状況・日時系の代表列。アプリ固有列がない場合のみPlayniteとして扱う。
+  var hasPlayniteActivity=hIndex(hdrs,[
+    'PlayTime','Play Time','プレイ時間','PlayCount','Play Count','プレイ回数',
+    'DateAdded','Date Added','追加日時','LastPlayed','Last Played','最後のプレイ'
+  ])>=0;
+  if(hasPlayniteActivity)return true;
+
+  // IDのない旧バックアップCSVと、最小構成の本アプリCSVへの互換性を維持する。
+  var hasLegacyAppData=hIndex(hdrs,[
+    'status','playStatus','プレイ状態','stars','自己評価','memo','メモ'
+  ])>=0;
+  if(hasLegacyAppData)return false;
+  if(hIndex(hdrs,['id','ID'])>=0)return false;
+  return true;
 }
 function detectPlaynitePlatform(row,hdrs){
   var vals=[
@@ -1078,7 +1146,7 @@ function applyTheme(){
 }
 function applyPanels(){
   var map={
-    playing:'panel-playing',favs:'panel-favs',
+    playing:'panel-playing',planned:'panel-planned',favs:'panel-favs',
     today:'panel-today',interest:'panel-interest',rec:'panel-rec',
     charts:'panel-charts',acqChart:'panel-acqchart',
     ranking:'panel-ranking',trophy:'panel-trophy',
@@ -1092,7 +1160,7 @@ function applyPanels(){
   }
   // hide row containers if both children hidden
   var pf=document.getElementById('panel-playing-favs');
-  if(pf)pf.style.display=(!CFG.panels.playing&&!CFG.panels.favs)?'none':'';
+  if(pf)pf.style.display=(!CFG.panels.playing&&!CFG.panels.planned&&!CFG.panels.favs)?'none':'';
   var tr=document.getElementById('panel-today-rec');
   if(tr)tr.style.display=(!CFG.panels.today&&!CFG.panels.interest&&!CFG.panels.rec)?'none':'';
   var rk=document.getElementById('panel-ranking-trophy');
@@ -1193,6 +1261,57 @@ function renderTrophies(){
 /* ── STORAGE ── */
 var SK='jgl_v6';
 var GK='jgl_games';
+
+/* ── CSV取込除外リスト (Playnite再取込防止) ── */
+var EXK='jgl_excluded_games';
+// Playnite CSVとの比較専用のタイトル正規化。
+// NFKC正規化 → 小文字化 → 空白(半角/全角)除去 → コロン・ハイフン・引用符など一般記号を除去。
+// 文字と数字は残す。カタカナ長音「ー」は別タイトル誤判定を防ぐため残す。
+function normTitleForExclusion(t){
+  t=String(t||'');
+  try{if(t.normalize)t=t.normalize('NFKC');}catch(e){}
+  t=t.toLowerCase();
+  t=t.replace(/[\s\u3000]+/g,'');
+  t=t.replace(/[:;,.\-_~^!?'"`*+=\/\\|()\[\]{}<>&#@%$\u2010\u2011\u2012\u2013\u2014\u2015\u2018\u2019\u201C\u201D\u3001\u3002\u30FB\uFF65\u300C\u300D\u300E\u300F\u3010\u3011\u00B7\u2026]/g,'');
+  return t;
+}
+function loadExcluded(){
+  try{
+    var r=localStorage.getItem(EXK);
+    if(!r)return [];
+    var a=JSON.parse(r);
+    if(!Array.isArray(a))return [];
+    var out=[];
+    for(var i=0;i<a.length;i++){
+      var e=a[i];
+      if(e&&typeof e==='object'&&e.k)out.push({t:String(e.t||''),k:String(e.k),pl:String(e.pl||''),d:String(e.d||'')});
+    }
+    return out;
+  }catch(e){return [];}
+}
+function saveExcluded(list){try{localStorage.setItem(EXK,JSON.stringify(list));}catch(e){}}
+function addExcluded(title,platform){
+  var key=normTitleForExclusion(title);
+  if(!key)return;
+  var now=new Date().toLocaleString('ja-JP');
+  var list=loadExcluded();
+  for(var i=0;i<list.length;i++){
+    if(list[i].k===key){list[i].t=String(title||'');list[i].pl=String(platform||list[i].pl||'');list[i].d=now;saveExcluded(list);return;}
+  }
+  list.push({t:String(title||''),k:key,pl:String(platform||''),d:now});
+  saveExcluded(list);
+}
+function removeExcludedByKey(key){
+  var list=loadExcluded(),out=[];
+  for(var i=0;i<list.length;i++){if(list[i].k!==key)out.push(list[i]);}
+  saveExcluded(out);
+}
+function clearExcluded(){saveExcluded([]);}
+function excludedKeySet(){
+  var list=loadExcluded(),s={};
+  for(var i=0;i<list.length;i++)s[list[i].k]=1;
+  return s;
+}
 function removeProgressStorage(){
   try{
     var keys=[];
@@ -1258,15 +1377,15 @@ function save(){
     for(var i=0;i<ids.length;i++){
       var id=ids[i],d=ud[id];
       var g=Object.keys(d.genres);
-      var has=g.length||d.og||d.st!=='unchecked'||d.fav||d.stars||d.url||d.am||d.memo||(d.acq&&d.acq!=='unknown')||id.indexOf('c_')===0;
-      if(has)o[id]={g:g,og:d.og||'',st:d.st||'unchecked',f:d.fav?1:0,s:d.stars||0,u:d.url||'',pl:d.pl||'',ti:d.ti||'',am:d.am?1:0,memo:d.memo||'',aq:d.acq||'unknown'};
+      var has=g.length||d.og||d.st!=='unchecked'||d.fav||d.stars||d.url||d.am||d.memo||(d.acq&&d.acq!=='unknown')||d.japaneseSupport||id.indexOf('c_')===0;
+      if(has)o[id]={g:g,og:d.og||'',st:d.st||'unchecked',f:d.fav?1:0,s:d.stars||0,u:d.url||'',pl:d.pl||'',ti:d.ti||'',am:d.am?1:0,memo:d.memo||'',aq:d.acq||'unknown',jp:d.japaneseSupport?1:0};
     }
     localStorage.setItem(SK,JSON.stringify(o));
   }catch(e){}
 }
 // 圧縮キー(g/f/s/u...)形式のud1件を内部形式へ展開。既に内部形式(genresオブジェクトを持つ)ならそのまま正規化して返す
 function expandUD(d){
-  if(!d||typeof d!=='object')return {genres:{},og:'',st:'unchecked',fav:false,stars:0,url:'',pl:'',ti:'',am:false,memo:'',acq:'unknown'};
+  if(!d||typeof d!=='object')return {genres:{},og:'',st:'unchecked',fav:false,stars:0,url:'',pl:'',ti:'',am:false,memo:'',acq:'unknown',japaneseSupport:false};
   // genresが配列(圧縮d.g) or オブジェクト(内部d.genres)のどちらでも受ける
   var genres={};
   if(d.genres&&typeof d.genres==='object'&&!Array.isArray(d.genres)){
@@ -1281,7 +1400,8 @@ function expandUD(d){
   var url=(d.url!==undefined)?(d.url||''):(d.u||'');
   var am=(d.am!==undefined)?!!d.am:false;
   var acq=normAcq(d.acq!==undefined?d.acq:d.aq);
-  return {genres:genres,og:d.og||'',st:st,fav:fav,stars:stars,url:url,pl:d.pl||'',ti:d.ti||'',am:am,memo:(d.memo!==undefined?d.memo:(d.m||'')),acq:acq};
+  var jp=(d.japaneseSupport!==undefined)?!!d.japaneseSupport:!!d.jp;
+  return {genres:genres,og:d.og||'',st:st,fav:fav,stars:stars,url:url,pl:d.pl||'',ti:d.ti||'',am:am,memo:(d.memo!==undefined?d.memo:(d.m||'')),acq:acq,japaneseSupport:jp};
 }
 function load(){
   try{
@@ -1296,7 +1416,7 @@ function load(){
   }catch(e){}
 }
 function getUD(id){
-  if(!ud[id])ud[id]={genres:{},og:'',st:'unchecked',fav:false,stars:0,url:'',pl:'',ti:'',am:false,memo:'',acq:'unknown'};
+  if(!ud[id])ud[id]={genres:{},og:'',st:'unchecked',fav:false,stars:0,url:'',pl:'',ti:'',am:false,memo:'',acq:'unknown',japaneseSupport:false};
   return ud[id];
 }
 
@@ -1418,14 +1538,12 @@ function updateHdr(){
 /* ── DASHBOARD ── */
 function renderDash(){
   var cnt={unchecked:0,playing:0,planned:0,cleared:0,backlog:0,checked:0};
-  var playingList=[],favList=[],backlogList=[];
+  var backlogList=[];
   for(var i=0;i<games.length;i++){
     var g=games[i];if(g.deleted)continue;
     var u=getUD(g.id);
     var st=u.st||'unchecked';
     if(cnt[st]!==undefined)cnt[st]++;
-    if(st==='playing')playingList.push(g);
-    if(u.fav)favList.push(g);
     if(st==='backlog')backlogList.push(g);
   }
   renderDonut1(cnt);renderDonut2(cnt);renderDonut3(cnt);
@@ -1436,15 +1554,75 @@ function renderDash(){
     if(acqCnt[a]!==undefined)acqCnt[a]++;else acqCnt.unknown++;
   }
   renderDonut4(acqCnt);
-  var cp=document.getElementById('cntPlaying');if(cp)cp.textContent=playingList.length;
-  renderMini('dashPlaying',playingList.slice(0,20));
-  var cf=document.getElementById('cntFav');if(cf)cf.textContent=favList.length;
-  renderMini('dashFavs',favList.slice(0,20));
+  buildDashGenreSelects();
+  renderDashLists();
   renderRanking();
   renderTodayGame(backlogList);
   renderSmartRecommendations();
   renderTrophies();
   updateHdr();
+}
+
+/* ── DASH PANELS (プレイ中・プレイ予定・お気に入り) ── */
+var dashGenreF={playing:'',planned:'',fav:''};
+function buildDashGenreSelects(){
+  var defs=[['dashPlayingGenre','playing'],['dashPlannedGenre','planned'],['dashFavGenre','fav']];
+  var choices=GENRES.slice(),seen={};
+  for(var gi=0;gi<choices.length;gi++)seen[choices[gi]]=1;
+  // 各ゲームの「その他ジャンル」も絞り込み候補へ追加する。
+  for(var gidx=0;gidx<games.length;gidx++){
+    if(games[gidx].deleted)continue;
+    var og=String(getUD(games[gidx].id).og||'').trim();
+    if(og&&!seen[og]){seen[og]=1;choices.push(og);}
+  }
+  for(var i=0;i<defs.length;i++){
+    var sel=document.getElementById(defs[i][0]),key=defs[i][1];
+    if(!sel)continue;
+    var cur=dashGenreF[key];
+    // 選択中のジャンルが存在しなくなったら「すべてのジャンル」へ戻す
+    if(cur&&choices.indexOf(cur)<0){dashGenreF[key]='';cur='';}
+    sel.innerHTML='';
+    var all=document.createElement('option');all.value='';all.textContent='すべてのジャンル';sel.appendChild(all);
+    for(var ci=0;ci<choices.length;ci++){
+      var op=document.createElement('option');op.value=choices[ci];op.textContent=choices[ci];sel.appendChild(op);
+    }
+    sel.value=cur;
+  }
+}
+function onDashGenreChange(key,sel){
+  dashGenreF[key]=sel?sel.value:'';
+  renderDashLists();
+}
+function renderDashLists(){
+  var playingList=[],plannedList=[],favList=[];
+  for(var i=0;i<games.length;i++){
+    var g=games[i];if(g.deleted)continue;
+    var u=getUD(g.id);
+    var st=u.st||'unchecked';
+    if(st==='playing')playingList.push(g);
+    if(st==='planned')plannedList.push(g);
+    if(u.fav)favList.push(g);
+  }
+  function byTitle(a,b){return a.title<b.title?-1:a.title>b.title?1:0;}
+  function filterGenre(list,genre){
+    if(!genre)return list.slice();
+    var out=[];
+    for(var i=0;i<list.length;i++){
+      var u=getUD(list[i].id);
+      // 複数ジャンルのゲームは、選択したジャンルを1つでも含んでいれば表示
+      if(u.genres[genre]||(u.og&&u.og.trim()===genre))out.push(list[i]);
+    }
+    return out;
+  }
+  function doPanel(list,key,cntId,elId){
+    var f=filterGenre(list,dashGenreF[key]);
+    f.sort(byTitle);
+    var c=document.getElementById(cntId);if(c)c.textContent=f.length;
+    renderMini(elId,f.slice(0,20));
+  }
+  doPanel(playingList,'playing','cntPlaying','dashPlaying');
+  doPanel(plannedList,'planned','cntPlanned','dashPlanned');
+  doPanel(favList,'fav','cntFav','dashFavs');
 }
 
 /* ── DONUTS ── */
@@ -1494,10 +1672,12 @@ function renderDonut1(cnt){
   ]);
 }
 function renderDonut2(cnt){
-  var cl=cnt.cleared,bl=cnt.backlog,tot=cl+bl;
+  // 消化率 = クリア済 ÷（クリア済＋プレイ中＋積みゲー）× 100
+  var cl=cnt.cleared||0,pl=cnt.playing||0,bl=cnt.backlog||0,tot=cl+pl+bl;
   var pct=tot>0?Math.round(cl/tot*100):0;
   makeDG('donutSvg2','dleg2',[
     {v:cl,color:'#34d399',label:'クリア済'},
+    {v:pl,color:'#3b82f6',label:'プレイ中'},
     {v:bl,color:'#f59e0b',label:'積みゲー'}
   ]);
   var svg=document.getElementById('donutSvg2');
@@ -1823,10 +2003,12 @@ function addGame(){
   var id='c_'+Date.now();var u=getUD(id);
   u.ti=title;u.pl=plat;u.st='unchecked';u.stars=addStar;u.genres=Object.assign({},addGenres);u.am=true;
   var acqSel=document.getElementById('addAcq');u.acq=acqSel?normAcq(acqSel.value):'unknown';
+  var jpEl=document.getElementById('addJp');u.japaneseSupport=!!(jpEl&&jpEl.checked);
   save();
   games.push({id:id,title:title,rawG:'',platform:plat,rd:'',ad:'',lp:'',pt:0,pc:0,isC:true,deleted:false});
   saveGames();
   document.getElementById('addTitle').value='';
+  var jpReset=document.getElementById('addJp');if(jpReset)jpReset.checked=false;
   addStar=0;addGenres={};setAddStar(0);
   var pills=document.querySelectorAll('#addGenres .add-genre-pill');
   for(var i=0;i<pills.length;i++)pills[i].classList.remove('active');
@@ -1835,7 +2017,13 @@ function addGame(){
 
 /* ── DELETE ── */
 function deleteGame(id){
-  for(var i=0;i<games.length;i++){if(games[i].id===id){games[i].deleted=true;break;}}
+  for(var i=0;i<games.length;i++){
+    if(games[i].id===id){
+      // 手動削除したゲームはPlaynite CSV再読み込みで復活しないよう除外リストへ記録
+      addExcluded(games[i].title,games[i].platform);
+      games[i].deleted=true;break;
+    }
+  }
   // ゲーム本体を削除したときは、孤立した評価・メモ等も保存領域から除去する
   if(ud[id])delete ud[id];
   save();saveGames();
@@ -2033,8 +2221,11 @@ function makeRow(g){
   var main=document.createElement('div');main.className='tmain';main.title=g.title;main.textContent=g.title;
   txWrap.appendChild(main);
   var tags=Object.keys(u.genres);if(u.og&&u.og.trim())tags.push(u.og.trim());
-  if(tags.length){
+  if(tags.length||u.japaneseSupport){
     var td2=document.createElement('div');td2.className='ttags';
+    if(u.japaneseSupport){
+      var jpTag=document.createElement('span');jpTag.className='gtag gtag-jp';jpTag.title='日本語対応あり';jpTag.textContent='🇯🇵 日本語';td2.appendChild(jpTag);
+    }
     for(var ti=0;ti<Math.min(tags.length,2);ti++){
       var tag=document.createElement('span');
       tag.className=(GENRES.indexOf(tags[ti])>=0)?'gtag':'gtag gtag-custom';
@@ -2108,6 +2299,7 @@ function openModal(id){
   document.getElementById('mUrl').value=u.url||'';
   document.getElementById('mOther').value=u.og||'';
   document.getElementById('mFav').checked=!!u.fav;
+  var mJpEl=document.getElementById('mJp');if(mJpEl)mJpEl.checked=!!u.japaneseSupport;
   ensureSelectOption(document.getElementById('mPlat'),u.pl||g.platform);
   document.getElementById('mPlat').value=u.pl||g.platform;
   document.getElementById('mMemoTa').value=u.memo||'';
@@ -2157,6 +2349,7 @@ function saveModal(){
   u.url=document.getElementById('mUrl').value.trim();
   u.memo=document.getElementById('mMemoTa').value;
   u.acq=selectedAcq;
+  var mJpSave=document.getElementById('mJp');u.japaneseSupport=!!(mJpSave&&mJpSave.checked);
   var newPl=document.getElementById('mPlat').value;
   u.pl=newPl;if(g)g.platform=newPl;u.am=true;
   save();saveGames();resetSmartRecs();closeModal();buildSBs();applyFilters();updateHdr();buildMemoSelect();if(curTab==='dashboard')renderDash();
@@ -2164,14 +2357,14 @@ function saveModal(){
 
 /* ── CSV ── */
 function buildCSVString(){
-  var hdr=['id','title','platform','releaseDate','addDate','lastPlayed','playCount','playTimeSec','genres','otherGenre','status','fav','stars','storeUrl','memo','acquisitionMethod'];
+  var hdr=['id','title','platform','releaseDate','addDate','lastPlayed','playCount','playTimeSec','genres','otherGenre','status','fav','stars','storeUrl','memo','acquisitionMethod','japaneseSupport'];
   var lines=[hdr.join(',')];
   for(var i=0;i<games.length;i++){
     var g=games[i];if(g.deleted)continue;
     var u=getUD(g.id);
     var vals=[g.id,g.title,g.platform,g.rd,g.ad,g.lp,g.pc,g.pt,
       Object.keys(u.genres).join('|'),u.og||'',u.st||'unchecked',
-      u.fav?'1':'0',String(u.stars||0),u.url||'',u.memo||'',u.acq||'unknown'];
+      u.fav?'1':'0',String(u.stars||0),u.url||'',u.memo||'',u.acq||'unknown',u.japaneseSupport?'1':'0'];
     lines.push(vals.map(function(v){return '"'+String(v).split('"').join('""')+'"';}).join(','));
   }
   return '\uFEFF'+lines.join('\n');
@@ -2343,14 +2536,18 @@ function importCSVText(text,mode){
   var oldCustom=CFG.customGenres.slice(),oldHidden=CFG.hiddenGenres.slice();
   try{
     if(mode==='replace'){games=[];ud={};}
-    var idx=buildGameIndexes(),added=0,updated=0,skipped=0;
+    var idx=buildGameIndexes(),added=0,updated=0,skipped=0,excluded=0;
     if(isPlaynite){
+      // 手動削除済みゲームの除外判定はPlaynite CSV読み込み時のみ適用する
+      // （本アプリのバックアップCSV/JSON復元には適用しない）
+      var exSet=excludedKeySet();
       var titleMap={};
       for(var i=0;i<games.length;i++){if(!games[i].deleted)titleMap[normalizeImportKey(games[i].title)]=games[i];}
       for(var i=1;i<rows.length;i++){
         var row=rows[i];
         var title=cell(row,hdrs,['タイトル','名前','Name','Title','Game']).trim();
         if(!title)continue;
+        if(exSet[normTitleForExclusion(title)]){excluded++;continue;}
         var src=detectPlaynitePlatform(row,hdrs);
         var key=normalizeImportKey(title);
         var pri=PRIORITY[src]||99;
@@ -2420,13 +2617,18 @@ function importCSVText(text,mode){
         var url=cellIf(row,hdrs,['storeUrl','url','URL','ストアURL']);if(url!==undefined)u.url=url;
         var memo=cellIf(row,hdrs,['memo','メモ']);if(memo!==undefined)u.memo=memo;
         var acq=cellIf(row,hdrs,['acquisitionMethod','acq','入手方法','購入方法']);if(acq!==undefined&&acq!=='')u.acq=normAcq(acq);
+        var jp=cellIf(row,hdrs,['japaneseSupport','日本語対応','日本語対応あり']);
+        if(jp!==undefined&&jp!=='')u.japaneseSupport=parseJpFlag(jp);
         u.am=true;
       }
     }
-    if(!added&&!updated&&!skipped&&rows.length>1)throw new Error('読み込めるゲームデータがありません');
+    if(!added&&!updated&&!skipped&&!excluded&&rows.length>1)throw new Error('読み込めるゲームデータがありません');
     finishDataImport();
     var total=added+updated;
-    if(mode==='replace')alert(total+' 件復元しました（既存データを置き換えました）');
+    if(isPlaynite){
+      alert((added+updated+skipped+excluded)+'件インポートしました\n新規登録：'+added+'件\n更新：'+updated+'件\n重複スキップ：'+skipped+'件\n削除済み除外：'+excluded+'件');
+    }
+    else if(mode==='replace')alert(total+' 件復元しました（既存データを置き換えました）');
     else alert(total+' 件インポートしました'+(skipped?'（重複スキップ: '+skipped+' 件）':'')+(updated?'（更新: '+updated+' 件）':''));
   }catch(err){
     games=oldGames;ud=oldUd;CFG.customGenres=oldCustom;CFG.hiddenGenres=oldHidden;normalizeGenres();
@@ -2555,7 +2757,7 @@ function renderSettingsPage(){
   // ── ダッシュボード ──
   var s3=makeSec('🖥️','ダッシュボード表示');
   var panelDefs=[
-    ['playing','🎮 プレイ中'],['favs','⭐ お気に入り'],
+    ['playing','🎮 プレイ中'],['planned','📋 プレイ予定'],['favs','⭐ お気に入り'],
     ['today','🎲 今日遊ぶ積みゲー'],['interest','🎯 興味ありそう'],['rec','💡 積みゲーおすすめ'],
     ['charts','📊 グラフ'],['acqChart','💰 入手方法グラフ'],['ranking','🏆 ランキング'],
     ['trophy','🥇 トロフィー'],['add','➕ 新規登録'],['memo','📝 メモ']
@@ -2618,6 +2820,48 @@ function renderSettingsPage(){
   restInp.addEventListener('change',function(e){importCSV(e,'replace');});restLbl.appendChild(restInp);
   r6e.ctrl.appendChild(restLbl);s6.rows.appendChild(r6e.row);
   el.appendChild(s6.sec);
+
+  // ── CSV取込除外リスト ──
+  var sx=makeSec('🚫','CSV取込除外リスト');
+  var exNote=document.createElement('div');exNote.className='genre-note';
+  exNote.textContent='手動削除したゲームの一覧です。ここに登録されている間は、Playnite CSVを読み込んでも再登録されません。「除外を解除」すると次回のCSV読み込みで再登録できます。';
+  sx.rows.appendChild(exNote);
+  var exList=loadExcluded();
+  if(!exList.length){
+    var exEmpty=document.createElement('div');
+    exEmpty.style.cssText='font-size:11px;color:var(--mt);padding:4px 2px';
+    exEmpty.textContent='除外中のゲームはありません。';
+    sx.rows.appendChild(exEmpty);
+  }else{
+    var exWrap=document.createElement('div');exWrap.className='ex-list';
+    for(var xi=0;xi<exList.length;xi++){
+      (function(entry){
+        var row=document.createElement('div');row.className='ex-row';
+        var t=document.createElement('span');t.className='ex-title';t.title=entry.t;t.textContent=entry.t;
+        var m=document.createElement('span');m.className='ex-meta';m.textContent=(entry.pl?entry.pl+'  ':'')+(entry.d?'削除: '+entry.d:'');
+        var b=document.createElement('button');b.className='btnsm';b.textContent='除外を解除';
+        b.addEventListener('click',function(){
+          removeExcludedByKey(entry.k);
+          renderSettingsPage();
+          showToast({ico:'✅',name:'除外を解除しました',desc:'「'+entry.t+'」は次回のPlaynite CSV読み込みで再登録できます'});
+        });
+        row.appendChild(t);row.appendChild(m);row.appendChild(b);
+        exWrap.appendChild(row);
+      })(exList[xi]);
+    }
+    sx.rows.appendChild(exWrap);
+    var exAllRow=makeRow('すべて解除','除外リストを空にして、全タイトルを再登録可能にする');
+    var exAllBtn=document.createElement('button');exAllBtn.className='btnsm btn-danger';exAllBtn.textContent='🗑 すべて解除';
+    exAllBtn.addEventListener('click',function(){
+      showConfirm('CSV取込除外リストをすべて解除しますか？\n次回のPlaynite CSV読み込みで、削除したゲームが再登録されるようになります。',function(){
+        clearExcluded();
+        renderSettingsPage();
+        showToast({ico:'✅',name:'すべて解除しました',desc:'除外リストを空にしました'});
+      });
+    });
+    exAllRow.ctrl.appendChild(exAllBtn);sx.rows.appendChild(exAllRow.row);
+  }
+  el.appendChild(sx.sec);
 
   // ── リセット ──
   var s7=makeSec('⚠️','データリセット');
