@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Game Library v1.2.1</title>
+<title>Game Library v1.2.2</title>
 <!-- App icons / PWA -->
 <link rel="icon" href="./favicon.ico?v=20260716" sizes="any">
 <link rel="icon" href="./icon.svg?v=20260716" type="image/svg+xml">
@@ -70,16 +70,22 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fn);font-size:14px;o
 .r3{grid-template-columns:1fr 1fr 1fr;}
 .rp3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr));}
 .dcard-hr{display:flex;align-items:center;gap:6px;min-width:0;}
-.dsel{background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:2px 4px;color:var(--tx);font-size:10px;outline:none;font-family:var(--fn);max-width:130px;}
+.dsel{background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:2px 4px;color:var(--tx);font-size:10px;outline:none;font-family:var(--fn);max-width:118px;}
+.dash-controls{display:flex;align-items:center;justify-content:flex-end;gap:4px;flex-wrap:wrap;min-width:0;margin-left:auto;}
+.jp-toggle{padding:3px 7px;border-radius:12px;border:1px solid var(--bd);background:var(--sf2);color:var(--dim);font-size:9px;cursor:pointer;font-family:var(--fn);white-space:nowrap;transition:all .15s;}
+.jp-toggle:hover{border-color:var(--sc);color:var(--sc);}
+.jp-toggle.active{background:rgba(52,211,153,.15);border-color:var(--sc);color:var(--sc);font-weight:700;}
 .gtag-jp{background:rgba(52,211,153,.13);color:#34d399;border:1px solid rgba(52,211,153,.35);}
+.gtag-vjp{background:rgba(59,130,246,.13);color:#60a5fa;border:1px solid rgba(59,130,246,.35);}
 .add-jp{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--dim);white-space:nowrap;cursor:pointer;user-select:none;}
+.add-flags{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:3px 7px;border:1px solid var(--bd);border-radius:6px;background:var(--sf2);}
 .ex-list{display:flex;flex-direction:column;gap:5px;max-height:260px;overflow-y:auto;padding:2px 0;}
 .ex-row{display:flex;align-items:center;gap:8px;background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:6px 9px;font-size:11px;}
 .ex-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;}
 .ex-meta{color:var(--mt);font-size:10px;white-space:nowrap;}
 @media(max-width:640px){.ex-meta{display:none;}}
 .dcard{background:var(--sf);border:1px solid var(--bd);border-radius:var(--radius);overflow:hidden;transition:background .2s,border-color .2s;}
-.dcard-h{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--bd);}
+.dcard-h{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:8px 12px;border-bottom:1px solid var(--bd);}
 .dcard-t{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);}
 .dcard-c{font-size:10px;color:var(--mt);background:var(--sf2);padding:2px 7px;border-radius:10px;}
 .dcard-b{padding:10px 12px;}
@@ -188,7 +194,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fn);font-size:14px;o
 
 /* ── LIBRARY TOOLBAR ── */
 .ltool{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--sf);border-bottom:1px solid var(--bd);flex-shrink:0;flex-wrap:wrap;}
-.sw{position:relative;flex:1;min-width:130px;}
+.sw{position:relative;flex:0 1 260px;min-width:150px;max-width:320px;}
 .sw input{width:100%;background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:6px 28px 6px 9px;color:var(--tx);font-size:13px;outline:none;font-family:var(--fn);transition:border-color .2s;}
 .sw input:focus{border-color:var(--ac);}
 .sw input::placeholder{color:var(--mt);}
@@ -204,6 +210,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fn);font-size:14px;o
 .pill.pb.active{background:rgba(245,158,11,.2);border-color:var(--sb);color:var(--sb);}
 .pill.pch.active{background:rgba(100,116,139,.2);border-color:var(--sch);color:var(--sch);}
 .pill.pf.active{background:rgba(245,158,11,.15);border-color:var(--fav);color:var(--fav);}
+.pill.pjp.active{background:rgba(52,211,153,.15);border-color:var(--sc);color:var(--sc);}
 
 /* ── SIDEBAR ── */
 .lbody{display:flex;flex:1;overflow:hidden;}
@@ -292,6 +299,8 @@ tr:hover .cpbtn{opacity:.5;}
 .sbdg.VITA{background:#100828;color:#a090e8;border:1px solid #4030a0;}
 .sbdg.GC{background:#180830;color:#b088f0;border:1px solid #5828a8;}
 .sbdg.Switch{background:#2a0508;color:#ff5060;border:1px solid #a01820;}
+.sbdg.METAQUEST{background:#07182b;color:#59b7ff;border:1px solid #176da8;}
+.sbdg.Retro{background:#2b1b05;color:#f6c453;border:1px solid #8b5a12;}
 .sbdg.custom{background:var(--ag);color:var(--ac2);border:1px solid rgba(124,106,247,.4);}
 tr.sp .tmain{color:var(--sp);}
 tr.sc .tmain{color:var(--sc);}
@@ -482,7 +491,7 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
       <div class="spill"><strong id="hTotal">0</strong>&nbsp;total</div>
       <div class="spill" style="color:var(--sp)"><strong id="hPlaying">0</strong>&nbsp;🎮</div>
       <div class="spill" style="color:var(--fav)"><strong id="hFav">0</strong>&nbsp;⭐</div>
-      <span class="ver-badge" id="verBadge">v1.2.1</span>
+      <span class="ver-badge" id="verBadge">v1.2.2</span>
     </div>
   </div>
 
@@ -548,15 +557,15 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
       </div>
       <div class="dash-row rp3" id="panel-playing-favs">
         <div class="dcard" id="panel-playing">
-          <div class="dcard-h"><span class="dcard-t">🎮 プレイ中</span><span class="dcard-hr"><select class="dsel" id="dashPlayingGenre" onchange="onDashGenreChange('playing',this)"></select><span class="dcard-c" id="cntPlaying">0</span></span></div>
+          <div class="dcard-h"><span class="dcard-t">🎮 プレイ中</span><span class="dash-controls"><select class="dsel" id="dashPlayingGenre" onchange="onDashGenreChange('playing',this)"></select><button class="jp-toggle" id="dashPlayingJp" onclick="toggleDashJp('playing',this)">🇯🇵 日本語</button><span class="dcard-c" id="cntPlaying">0</span></span></div>
           <div class="dcard-b"><div class="mlist" id="dashPlaying"></div></div>
         </div>
         <div class="dcard" id="panel-planned">
-          <div class="dcard-h"><span class="dcard-t">📋 プレイ予定</span><span class="dcard-hr"><select class="dsel" id="dashPlannedGenre" onchange="onDashGenreChange('planned',this)"></select><span class="dcard-c" id="cntPlanned">0</span></span></div>
+          <div class="dcard-h"><span class="dcard-t">📋 プレイ予定</span><span class="dash-controls"><select class="dsel" id="dashPlannedGenre" onchange="onDashGenreChange('planned',this)"></select><button class="jp-toggle" id="dashPlannedJp" onclick="toggleDashJp('planned',this)">🇯🇵 日本語</button><span class="dcard-c" id="cntPlanned">0</span></span></div>
           <div class="dcard-b"><div class="mlist" id="dashPlanned"></div></div>
         </div>
         <div class="dcard" id="panel-favs">
-          <div class="dcard-h"><span class="dcard-t">⭐ お気に入り</span><span class="dcard-hr"><select class="dsel" id="dashFavGenre" onchange="onDashGenreChange('fav',this)"></select><span class="dcard-c" id="cntFav">0</span></span></div>
+          <div class="dcard-h"><span class="dcard-t">⭐ お気に入り</span><span class="dash-controls"><select class="dsel" id="dashFavGenre" onchange="onDashGenreChange('fav',this)"></select><button class="jp-toggle" id="dashFavJp" onclick="toggleDashJp('fav',this)">🇯🇵 日本語</button><span class="dcard-c" id="cntFav">0</span></span></div>
           <div class="dcard-b"><div class="mlist" id="dashFavs"></div></div>
         </div>
       </div>
@@ -564,16 +573,16 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
         <div class="dcard" id="panel-today">
           <div class="dcard-h">
             <span class="dcard-t">🎲 今日遊ぶ積みゲー</span>
-            <button class="btn-reroll" onclick="rerollToday()">🔀 再抽選</button>
+            <span class="dash-controls"><select class="dsel" id="dashTodayGenre" onchange="onDashGenreChange('today',this)"></select><button class="jp-toggle" id="dashTodayJp" onclick="toggleDashJp('today',this)">🇯🇵 日本語</button><button class="btn-reroll" onclick="rerollToday()">🔀</button></span>
           </div>
           <div class="dcard-b" id="todayGame"><div style="font-size:11px;color:var(--mt)">積みゲーがありません</div></div>
         </div>
         <div class="dcard" id="panel-interest">
-          <div class="dcard-h"><span class="dcard-t">🎯 あなたが興味ありそうなタイトル</span><button class="btn-reroll" onclick="rerollSmartRecs()">🔀 再抽選</button></div>
+          <div class="dcard-h"><span class="dcard-t">🎯 あなたが興味ありそうなタイトル</span><span class="dash-controls"><select class="dsel" id="dashInterestGenre" onchange="onDashGenreChange('interest',this)"></select><button class="jp-toggle" id="dashInterestJp" onclick="toggleDashJp('interest',this)">🇯🇵 日本語</button><button class="btn-reroll" onclick="rerollSmartRecs('interest')">🔀</button></span></div>
           <div class="dcard-b" id="interestGames"><div style="font-size:11px;color:var(--mt)">お気に入り・プレイ中を設定すると表示されます</div></div>
         </div>
         <div class="dcard" id="panel-rec">
-          <div class="dcard-h"><span class="dcard-t">💡 積みゲーおすすめ</span><button class="btn-reroll" onclick="rerollSmartRecs()">🔀 再抽選</button></div>
+          <div class="dcard-h"><span class="dcard-t">💡 積みゲーおすすめ</span><span class="dash-controls"><select class="dsel" id="dashRecGenre" onchange="onDashGenreChange('rec',this)"></select><button class="jp-toggle" id="dashRecJp" onclick="toggleDashJp('rec',this)">🇯🇵 日本語</button><button class="btn-reroll" onclick="rerollSmartRecs('rec')">🔀</button></span></div>
           <div class="dcard-b" id="recGames"><div style="font-size:11px;color:var(--mt)">データ不足</div></div>
         </div>
       </div>
@@ -617,7 +626,7 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
               <option>PS1</option><option>PS2</option><option>PS3</option>
               <option>PS4</option><option>PS5</option><option>PSP</option>
               <option>VITA</option><option>GC</option><option value="3DS">3DS</option>
-              <option>Switch</option>
+              <option>Switch</option><option>META QUEST</option><option>レトロ</option>
             </select>
             <select class="fs" id="addAcq" title="入手方法">
               <option value="purchase">💰 購入</option>
@@ -626,7 +635,11 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
               <option value="bundle">🎀 バンドル</option>
               <option value="unknown" selected>❓ 不明</option>
             </select>
-            <label class="add-jp"><input type="checkbox" id="addJp"> 🇯🇵 日本語対応あり</label>
+            <div class="add-flags">
+              <label class="add-jp"><input type="checkbox" id="addJp"> 🇯🇵 公式日本語</label>
+              <label class="add-jp"><input type="checkbox" id="addVolunteerJp"> 🛠 有志日本語化</label>
+              <label class="add-jp"><input type="checkbox" id="addFav"> ⭐ お気に入り</label>
+            </div>
             <button class="btn-add" onclick="addGame()">追加</button>
           </div>
           <div class="addex">
@@ -677,6 +690,7 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
         <button class="pill pb" onclick="setStF('backlog',this)">📦 積みゲー</button>
         <button class="pill pch" onclick="setStF('checked',this)">☑ チェック済</button>
         <button class="pill pf" id="favPill" onclick="toggleFavF(this)">⭐ お気に入り</button>
+        <button class="pill pjp" id="jpPill" onclick="toggleJpF(this)">🇯🇵 日本語対応</button>
       </div>
       <div class="acq-row">
         <span class="acq-lbl">入手方法:</span>
@@ -777,21 +791,28 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
             <option>PS1</option><option>PS2</option><option>PS3</option>
             <option>PS4</option><option>PS5</option><option>PSP</option>
             <option>VITA</option><option>GC</option><option value="3DS">3DS</option>
-            <option>Switch</option>
+            <option>Switch</option><option>META QUEST</option><option>レトロ</option>
           </select>
           <input class="mi" id="mUrl" placeholder="ストアページURL（任意）">
           <button class="btnsm" onclick="openUrl('mUrl')">↗</button>
         </div>
       </div>
       <div>
-        <div class="msl">2b. 入手方法</div>
-        <select class="mi" id="mAcq" style="max-width:180px">
-          <option value="purchase">💰 購入</option>
-          <option value="free">🎁 無料配布</option>
-          <option value="prime">📦 Prime特典</option>
-          <option value="bundle">🎀 バンドル</option>
-          <option value="unknown">❓ 不明</option>
-        </select>
+        <div class="msl">2b. 入手方法・言語・お気に入り</div>
+        <div class="prow" style="flex-wrap:wrap">
+          <select class="mi" id="mAcq" style="max-width:180px">
+            <option value="purchase">💰 購入</option>
+            <option value="free">🎁 無料配布</option>
+            <option value="prime">📦 Prime特典</option>
+            <option value="bundle">🎀 バンドル</option>
+            <option value="unknown">❓ 不明</option>
+          </select>
+          <div class="add-flags">
+            <label class="add-jp"><input type="checkbox" id="mJp"> 🇯🇵 公式日本語</label>
+            <label class="add-jp"><input type="checkbox" id="mVolunteerJp"> 🛠 有志日本語化</label>
+            <label class="add-jp"><input type="checkbox" id="mFav"> ⭐ お気に入り</label>
+          </div>
+        </div>
       </div>
       <div>
         <div class="genre-head">
@@ -819,20 +840,7 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
         <div class="msl">5. ゲームメモ</div>
         <textarea class="mmemo-ta" id="mMemoTa" placeholder="次の目標・ストーリー進捗・操作メモ…"></textarea>
       </div>
-      <div>
-        <div class="msl">6. お気に入り</div>
-        <div class="frow">
-          <input type="checkbox" class="fchk" id="mFav">
-          <label class="flbl" for="mFav">⭐ お気に入りに登録</label>
-        </div>
-      </div>
-      <div>
-        <div class="msl">7. 日本語対応</div>
-        <div class="frow">
-          <input type="checkbox" class="fchk" id="mJp">
-          <label class="flbl" for="mJp">🇯🇵 日本語対応あり</label>
-        </div>
-      </div>
+
     </div>
     <div class="mftr">
       <button class="mftr-del" onclick="deleteFromModal()">🗑 削除</button>
@@ -860,9 +868,17 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
 
 <script>
 var PC_RAW = [];
-var APP_VERSION='1.2.1';
+var APP_VERSION='1.2.2';
 var APP_RELEASE='2026/07/02';
 var CHANGELOG=[
+  {v:'1.2.2',d:'2026/07/19',items:[
+    '日本語対応・有志日本語化・お気に入りを入手方法の横へ集約',
+    '全ゲーム一覧に公式／有志をまとめた日本語対応フィルターを追加',
+    'プラットフォームにMETA QUEST・レトロを追加',
+    'ダッシュボード6パネルにジャンル選択と日本語対応フィルターを追加',
+    '実績・トロフィーを30種類へ倍増し、最大3000本まで拡張',
+    '旧CSV互換を維持したまま有志日本語化列を追加'
+  ]},
   {v:'1.2.1',d:'2026/07/18',items:[
     'Favorite／お気に入り列を含むPlaynite CSVを本アプリのバックアップCSVと誤判定する不具合を修正',
     'Playnite CSVの形式判定をSource・Library・PlayTime・PlayCount等の固有列優先へ改善',
@@ -961,7 +977,7 @@ var AUTO_MAP = {
 var STS = {unchecked:'⬜',playing:'🎮',planned:'📋',cleared:'✅',backlog:'📦',checked:'☑'};
 var STC = {unchecked:'',playing:'sp',planned:'spr',cleared:'sc',backlog:'sb',checked:'sch'};
 var SCLS = {unchecked:'au',playing:'ap',planned:'apr',cleared:'ac2',backlog:'ab',checked:'ach'};
-var PRIORITY = {Steam:1,Epic:2,Amazon:3,GOG:4,'EA app':5,Humble:6,'Ubisoft Connect':7,'Battle.net':8,'itch.io':9,Other:99};
+var PRIORITY = {Steam:1,Epic:2,Amazon:3,GOG:4,'EA app':5,Humble:6,'Ubisoft Connect':7,'Battle.net':8,'itch.io':9,'META QUEST':10,'レトロ':11,Other:99};
 var ACQ_LABELS={purchase:'購入',free:'無料配布',prime:'Prime特典',bundle:'バンドル',unknown:'不明'};
 var ACQ_JP2EN={'購入':'purchase','無料配布':'free','Prime特典':'prime','バンドル':'bundle','不明':'unknown'};
 function normAcq(v){
@@ -1061,6 +1077,8 @@ function normalizePlatformName(v){
   if(low.indexOf('xbox')>=0||low.indexOf('game pass')>=0)return 'Xbox';
   if(low.indexOf('playstation')>=0||low==='ps'||low.indexOf('ps5')>=0)return 'PS5';
   if(low.indexOf('switch')>=0||low.indexOf('nintendo')>=0)return 'Switch';
+  if(low.indexOf('meta quest')>=0||low.indexOf('oculus')>=0||low==='quest'||low.indexOf('quest 2')>=0||low.indexOf('quest 3')>=0)return 'META QUEST';
+  if(low.indexOf('retro')>=0||low.indexOf('レトロ')>=0||low.indexOf('emulator')>=0||low.indexOf('エミュ')>=0)return 'レトロ';
   return v;
 }
 function normHeader(v){return String(v||'').toLowerCase().replace(/^\ufeff/,'').replace(/[\s_\-　]/g,'');}
@@ -1072,7 +1090,8 @@ function hIndex(hdrs,aliases){
 function cell(row,hdrs,aliases){var idx=hIndex(hdrs,aliases);return idx>=0?(row[idx]||''):'';}
 function cellIf(row,hdrs,aliases){var idx=hIndex(hdrs,aliases);return idx>=0?(row[idx]||''):undefined;}
 function parseBool(v){v=String(v||'').trim().toLowerCase();return v==='1'||v==='true'||v==='yes'||v==='on'||v==='⭐'||v==='お気に入り';}
-function parseJpFlag(v){var s=String(v||'').trim();return parseBool(s)||s==='あり'||s==='対応'||s==='日本語'||s==='○'||s==='◯';}
+function parseJpFlag(v){var s=String(v||'').trim();return parseBool(s)||s==='あり'||s==='対応'||s==='日本語'||s==='○'||s==='◯'||s==='公式';}
+function parseVolunteerJpFlag(v){var s=String(v||'').trim();return parseBool(s)||s==='あり'||s==='対応'||s==='有志'||s==='有志日本語化'||s==='○'||s==='◯';}
 function parsePlayTime(v){
   v=String(v||'').trim();if(!v)return 0;
   if(/^\d+$/.test(v))return parseInt(v,10)||0;
@@ -1098,7 +1117,8 @@ function isPlayniteHeader(hdrs){
   // Favorite・評価・メモはPlaynite側にも存在し得るため、形式判定には単独で使用しない。
   var hasAppSpecific=hIndex(hdrs,[
     'otherGenre','その他ジャンル','acquisitionMethod','acq','入手方法','購入方法',
-    'storeUrl','ストアURL','japaneseSupport','日本語対応','日本語対応あり'
+    'storeUrl','ストアURL','japaneseSupport','日本語対応','日本語対応あり',
+    'volunteerJapaneseSupport','有志日本語化','有志日本語対応'
   ])>=0;
   if(hasAppSpecific)return false;
 
@@ -1176,7 +1196,14 @@ var TB=[
   {id:'b200',req:200,ico:'💎',name:'積みゲー大魔王討伐',desc:'200本！SALE恐れ知らず'},
   {id:'b300',req:300,ico:'👑',name:'積みゲー皇帝',desc:'300本！人間を超えた領域'},
   {id:'b500',req:500,ico:'🔥',name:'積みゲー焼却炉',desc:'500本！Steamの在庫が燃えた'},
-  {id:'b1000',req:1000,ico:'🎭',name:'積みゲー伝説完成',desc:'1000本！人類史に名を刻んだ'}
+  {id:'b750',req:750,ico:'⚡',name:'七百五十の稲妻',desc:'750本！積みゲー山脈を踏破'},
+  {id:'b1000',req:1000,ico:'🎭',name:'積みゲー伝説完成',desc:'1000本！人類史に名を刻んだ'},
+  {id:'b1250',req:1250,ico:'🌋',name:'積みゲー火山神',desc:'1250本！消化の噴火が止まらない'},
+  {id:'b1500',req:1500,ico:'🛡️',name:'千五百の守護者',desc:'1500本！購入欲にも負けない'},
+  {id:'b1800',req:1800,ico:'🚀',name:'銀河級クリアラー',desc:'1800本！消化速度は宇宙級'},
+  {id:'b2200',req:2200,ico:'🌌',name:'積みゲー銀河皇帝',desc:'2200本！ライブラリを統べる者'},
+  {id:'b2600',req:2600,ico:'🐲',name:'最終竜討伐者',desc:'2600本！残る敵はあとわずか'},
+  {id:'b3000',req:3000,ico:'🌟',name:'積みゲー神話',desc:'3000本！もはや実績ではなく神話'}
 ];
 var TU=[
   {id:'u10',req:10,ico:'📝',name:'初めての一歩',desc:'10本チェック！旅が始まった'},
@@ -1184,8 +1211,16 @@ var TU=[
   {id:'u60',req:60,ico:'🗂️',name:'整理魔',desc:'60本！几帳面さが光る'},
   {id:'u100',req:100,ico:'✨',name:'ライブラリマスター',desc:'100本！完璧な管理能力'},
   {id:'u200',req:200,ico:'🔍',name:'全タイトル把握者',desc:'200本！何があるか全部知ってる'},
+  {id:'u300',req:300,ico:'🧭',name:'三百本の案内人',desc:'300本！迷わないライブラリ'},
   {id:'u500',req:500,ico:'🎯',name:'チェック完全制覇',desc:'500本！もはや図書館司書'},
-  {id:'u1000',req:1000,ico:'🏛️',name:'ゲーム博物館館長',desc:'1000本！歴史的偉業'}
+  {id:'u750',req:750,ico:'🧠',name:'記憶の達人',desc:'750本！整理力が別次元'},
+  {id:'u1000',req:1000,ico:'🏛️',name:'ゲーム博物館館長',desc:'1000本！歴史的偉業'},
+  {id:'u1250',req:1250,ico:'📜',name:'千二百五十の記録者',desc:'1250本！記録が文化遺産級'},
+  {id:'u1500',req:1500,ico:'🗃️',name:'超級アーカイバー',desc:'1500本！分類に死角なし'},
+  {id:'u1800',req:1800,ico:'🛰️',name:'全域スキャナー',desc:'1800本！未確認タイトルを見逃さない'},
+  {id:'u2200',req:2200,ico:'🔭',name:'ライブラリ観測者',desc:'2200本！全体像を完全把握'},
+  {id:'u2600',req:2600,ico:'🧬',name:'ゲーム分類生命体',desc:'2600本！整理が本能になった'},
+  {id:'u3000',req:3000,ico:'💫',name:'究極ライブラリアン',desc:'3000本！管理の頂点に到達'}
 ];
 function getTU(){try{return JSON.parse(localStorage.getItem('jgl_tr')||'{}');}catch(e){return {};}}
 function setTU(u){try{localStorage.setItem('jgl_tr',JSON.stringify(u));}catch(e){}}
@@ -1199,9 +1234,6 @@ function checkTrophies(){
     if(st!=='unchecked')notUnchecked++;
   }
   var newOnes=[];
-  var all=TB.concat(TU);
-  var reqs=[cleared,cleared,cleared,cleared,cleared,cleared,cleared,cleared,
-            notUnchecked,notUnchecked,notUnchecked,notUnchecked,notUnchecked,notUnchecked,notUnchecked];
   // TB uses cleared, TU uses notUnchecked
   for(var i=0;i<TB.length;i++){
     if(!unlocked[TB[i].id]&&cleared>=TB[i].req){
@@ -1377,15 +1409,15 @@ function save(){
     for(var i=0;i<ids.length;i++){
       var id=ids[i],d=ud[id];
       var g=Object.keys(d.genres);
-      var has=g.length||d.og||d.st!=='unchecked'||d.fav||d.stars||d.url||d.am||d.memo||(d.acq&&d.acq!=='unknown')||d.japaneseSupport||id.indexOf('c_')===0;
-      if(has)o[id]={g:g,og:d.og||'',st:d.st||'unchecked',f:d.fav?1:0,s:d.stars||0,u:d.url||'',pl:d.pl||'',ti:d.ti||'',am:d.am?1:0,memo:d.memo||'',aq:d.acq||'unknown',jp:d.japaneseSupport?1:0};
+      var has=g.length||d.og||d.st!=='unchecked'||d.fav||d.stars||d.url||d.am||d.memo||(d.acq&&d.acq!=='unknown')||d.japaneseSupport||d.volunteerJapaneseSupport||id.indexOf('c_')===0;
+      if(has)o[id]={g:g,og:d.og||'',st:d.st||'unchecked',f:d.fav?1:0,s:d.stars||0,u:d.url||'',pl:d.pl||'',ti:d.ti||'',am:d.am?1:0,memo:d.memo||'',aq:d.acq||'unknown',jp:d.japaneseSupport?1:0,vjp:d.volunteerJapaneseSupport?1:0};
     }
     localStorage.setItem(SK,JSON.stringify(o));
   }catch(e){}
 }
 // 圧縮キー(g/f/s/u...)形式のud1件を内部形式へ展開。既に内部形式(genresオブジェクトを持つ)ならそのまま正規化して返す
 function expandUD(d){
-  if(!d||typeof d!=='object')return {genres:{},og:'',st:'unchecked',fav:false,stars:0,url:'',pl:'',ti:'',am:false,memo:'',acq:'unknown',japaneseSupport:false};
+  if(!d||typeof d!=='object')return {genres:{},og:'',st:'unchecked',fav:false,stars:0,url:'',pl:'',ti:'',am:false,memo:'',acq:'unknown',japaneseSupport:false,volunteerJapaneseSupport:false};
   // genresが配列(圧縮d.g) or オブジェクト(内部d.genres)のどちらでも受ける
   var genres={};
   if(d.genres&&typeof d.genres==='object'&&!Array.isArray(d.genres)){
@@ -1401,7 +1433,8 @@ function expandUD(d){
   var am=(d.am!==undefined)?!!d.am:false;
   var acq=normAcq(d.acq!==undefined?d.acq:d.aq);
   var jp=(d.japaneseSupport!==undefined)?!!d.japaneseSupport:!!d.jp;
-  return {genres:genres,og:d.og||'',st:st,fav:fav,stars:stars,url:url,pl:d.pl||'',ti:d.ti||'',am:am,memo:(d.memo!==undefined?d.memo:(d.m||'')),acq:acq,japaneseSupport:jp};
+  var vjp=(d.volunteerJapaneseSupport!==undefined)?!!d.volunteerJapaneseSupport:!!d.vjp;
+  return {genres:genres,og:d.og||'',st:st,fav:fav,stars:stars,url:url,pl:d.pl||'',ti:d.ti||'',am:am,memo:(d.memo!==undefined?d.memo:(d.m||'')),acq:acq,japaneseSupport:jp,volunteerJapaneseSupport:vjp};
 }
 function load(){
   try{
@@ -1416,7 +1449,7 @@ function load(){
   }catch(e){}
 }
 function getUD(id){
-  if(!ud[id])ud[id]={genres:{},og:'',st:'unchecked',fav:false,stars:0,url:'',pl:'',ti:'',am:false,memo:'',acq:'unknown',japaneseSupport:false};
+  if(!ud[id])ud[id]={genres:{},og:'',st:'unchecked',fav:false,stars:0,url:'',pl:'',ti:'',am:false,memo:'',acq:'unknown',japaneseSupport:false,volunteerJapaneseSupport:false};
   return ud[id];
 }
 
@@ -1453,6 +1486,7 @@ var gMode='OR';
 var pF={};
 var starF=0;
 var favF=false;
+var jpF=false;
 var acqF='all';
 var sKey='title';
 var sDir=1;
@@ -1564,12 +1598,29 @@ function renderDash(){
 }
 
 /* ── DASH PANELS (プレイ中・プレイ予定・お気に入り) ── */
-var dashGenreF={playing:'',planned:'',fav:''};
+var dashGenreF={playing:'',planned:'',fav:'',today:'',interest:'',rec:''};
+var dashJpF={playing:false,planned:false,fav:false,today:false,interest:false,rec:false};
+function gameHasJapanese(g){
+  var u=getUD(g.id);return !!(u.japaneseSupport||u.volunteerJapaneseSupport);
+}
+function gameMatchesGenre(g,genre){
+  if(!genre)return true;
+  var u=getUD(g.id);return !!(u.genres[genre]||(u.og&&u.og.trim()===genre));
+}
+function filterDashGames(list,key){
+  var out=[];
+  for(var i=0;i<list.length;i++){
+    var g=list[i];
+    if(!gameMatchesGenre(g,dashGenreF[key]))continue;
+    if(dashJpF[key]&&!gameHasJapanese(g))continue;
+    out.push(g);
+  }
+  return out;
+}
 function buildDashGenreSelects(){
-  var defs=[['dashPlayingGenre','playing'],['dashPlannedGenre','planned'],['dashFavGenre','fav']];
+  var defs=[['dashPlayingGenre','playing'],['dashPlannedGenre','planned'],['dashFavGenre','fav'],['dashTodayGenre','today'],['dashInterestGenre','interest'],['dashRecGenre','rec']];
   var choices=GENRES.slice(),seen={};
   for(var gi=0;gi<choices.length;gi++)seen[choices[gi]]=1;
-  // 各ゲームの「その他ジャンル」も絞り込み候補へ追加する。
   for(var gidx=0;gidx<games.length;gidx++){
     if(games[gidx].deleted)continue;
     var og=String(getUD(games[gidx].id).og||'').trim();
@@ -1579,44 +1630,39 @@ function buildDashGenreSelects(){
     var sel=document.getElementById(defs[i][0]),key=defs[i][1];
     if(!sel)continue;
     var cur=dashGenreF[key];
-    // 選択中のジャンルが存在しなくなったら「すべてのジャンル」へ戻す
     if(cur&&choices.indexOf(cur)<0){dashGenreF[key]='';cur='';}
     sel.innerHTML='';
-    var all=document.createElement('option');all.value='';all.textContent='すべてのジャンル';sel.appendChild(all);
+    var all=document.createElement('option');all.value='';all.textContent='全ジャンル';sel.appendChild(all);
     for(var ci=0;ci<choices.length;ci++){
       var op=document.createElement('option');op.value=choices[ci];op.textContent=choices[ci];sel.appendChild(op);
     }
     sel.value=cur;
   }
+  var btnDefs=[['dashPlayingJp','playing'],['dashPlannedJp','planned'],['dashFavJp','fav'],['dashTodayJp','today'],['dashInterestJp','interest'],['dashRecJp','rec']];
+  for(var bi=0;bi<btnDefs.length;bi++){
+    var btn=document.getElementById(btnDefs[bi][0]);if(btn)btn.classList.toggle('active',!!dashJpF[btnDefs[bi][1]]);
+  }
 }
-function onDashGenreChange(key,sel){
-  dashGenreF[key]=sel?sel.value:'';
-  renderDashLists();
+function refreshDashFilteredPanel(key){
+  if(key==='playing'||key==='planned'||key==='fav'){renderDashLists();return;}
+  if(key==='today'){todayGame=null;var bl=games.filter(function(g){return !g.deleted&&(getUD(g.id).st||'unchecked')==='backlog';});renderTodayGame(bl);return;}
+  if(key==='interest'){smartInterestIds=null;renderSmartRecommendations();return;}
+  if(key==='rec'){smartBacklogIds=null;renderSmartRecommendations();}
 }
+function onDashGenreChange(key,sel){dashGenreF[key]=sel?sel.value:'';refreshDashFilteredPanel(key);}
+function toggleDashJp(key,btn){dashJpF[key]=!dashJpF[key];if(btn)btn.classList.toggle('active',dashJpF[key]);refreshDashFilteredPanel(key);}
 function renderDashLists(){
   var playingList=[],plannedList=[],favList=[];
   for(var i=0;i<games.length;i++){
     var g=games[i];if(g.deleted)continue;
-    var u=getUD(g.id);
-    var st=u.st||'unchecked';
+    var u=getUD(g.id),st=u.st||'unchecked';
     if(st==='playing')playingList.push(g);
     if(st==='planned')plannedList.push(g);
     if(u.fav)favList.push(g);
   }
   function byTitle(a,b){return a.title<b.title?-1:a.title>b.title?1:0;}
-  function filterGenre(list,genre){
-    if(!genre)return list.slice();
-    var out=[];
-    for(var i=0;i<list.length;i++){
-      var u=getUD(list[i].id);
-      // 複数ジャンルのゲームは、選択したジャンルを1つでも含んでいれば表示
-      if(u.genres[genre]||(u.og&&u.og.trim()===genre))out.push(list[i]);
-    }
-    return out;
-  }
   function doPanel(list,key,cntId,elId){
-    var f=filterGenre(list,dashGenreF[key]);
-    f.sort(byTitle);
+    var f=filterDashGames(list,key);f.sort(byTitle);
     var c=document.getElementById(cntId);if(c)c.textContent=f.length;
     renderMini(elId,f.slice(0,20));
   }
@@ -1786,9 +1832,10 @@ function genreIcon(g){
 /* ── TODAY GAME ── */
 function renderTodayGame(backlogList){
   var el=document.getElementById('todayGame');if(!el)return;
-  var pool=(CFG.randomFrom==='all')
+  var basePool=(CFG.randomFrom==='all')
     ?games.filter(function(g){return !g.deleted;})
     :backlogList;
+  var pool=filterDashGames(basePool,'today');
   if(!pool.length){el.innerHTML='<div style="font-size:11px;color:var(--mt)">対象ゲームがありません</div>';return;}
   if(!todayGame||!pool.some(function(g){return g.id===todayGame.id;})){
     todayGame=pool[Math.floor(Math.random()*pool.length)];
@@ -1808,7 +1855,8 @@ function renderTodayGame(backlogList){
 }
 function rerollToday(){
   var bl=games.filter(function(g){return !g.deleted&&(getUD(g.id).st||'unchecked')==='backlog';});
-  var pool=(CFG.randomFrom==='all')?games.filter(function(g){return !g.deleted;}):bl;
+  var basePool=(CFG.randomFrom==='all')?games.filter(function(g){return !g.deleted;}):bl;
+  var pool=filterDashGames(basePool,'today');
   if(!pool.length)return;
   todayGame=pool[Math.floor(Math.random()*pool.length)];
   renderTodayGame(bl);
@@ -1816,7 +1864,7 @@ function rerollToday(){
 
 
 function resetSmartRecs(){smartInterestIds=null;smartBacklogIds=null;}
-function rerollSmartRecs(){resetSmartRecs();renderSmartRecommendations();}
+function rerollSmartRecs(key){if(key==='interest')smartInterestIds=null;else if(key==='rec')smartBacklogIds=null;else resetSmartRecs();renderSmartRecommendations();}
 function prefProfile(){
   var prof={genres:{},platforms:{},count:0};
   for(var i=0;i<games.length;i++){
@@ -1886,6 +1934,8 @@ function renderSmartRecommendations(){
     if(!u.fav&&st!=='playing'&&st!=='cleared')interestPool.push(g);
     if(st==='backlog')backlogPool.push(g);
   }
+  interestPool=filterDashGames(interestPool,'interest');
+  backlogPool=filterDashGames(backlogPool,'rec');
   if(!smartInterestIds)smartInterestIds=chooseSmart(interestPool,5);
   if(!smartBacklogIds)smartBacklogIds=chooseSmart(backlogPool,5);
   renderSmartList('interestGames',smartInterestIds,'お気に入り・プレイ中を設定すると、興味に近いタイトルを表示します');
@@ -2004,11 +2054,15 @@ function addGame(){
   u.ti=title;u.pl=plat;u.st='unchecked';u.stars=addStar;u.genres=Object.assign({},addGenres);u.am=true;
   var acqSel=document.getElementById('addAcq');u.acq=acqSel?normAcq(acqSel.value):'unknown';
   var jpEl=document.getElementById('addJp');u.japaneseSupport=!!(jpEl&&jpEl.checked);
+  var vjpEl=document.getElementById('addVolunteerJp');u.volunteerJapaneseSupport=!!(vjpEl&&vjpEl.checked);
+  var favEl=document.getElementById('addFav');u.fav=!!(favEl&&favEl.checked);
   save();
   games.push({id:id,title:title,rawG:'',platform:plat,rd:'',ad:'',lp:'',pt:0,pc:0,isC:true,deleted:false});
   saveGames();
   document.getElementById('addTitle').value='';
   var jpReset=document.getElementById('addJp');if(jpReset)jpReset.checked=false;
+  var vjpReset=document.getElementById('addVolunteerJp');if(vjpReset)vjpReset.checked=false;
+  var favReset=document.getElementById('addFav');if(favReset)favReset.checked=false;
   addStar=0;addGenres={};setAddStar(0);
   var pills=document.querySelectorAll('#addGenres .add-genre-pill');
   for(var i=0;i<pills.length;i++)pills[i].classList.remove('active');
@@ -2104,8 +2158,9 @@ function buildSBs(){
 
 /* ── FILTERS ── */
 function onSearch(v){searchQ=v.toLowerCase().trim();applyFilters();}
-function setStF(s,btn){stF=s;var ps=document.querySelectorAll('.pills .pill');for(var i=0;i<ps.length;i++)ps[i].classList.remove('active');btn.classList.add('active');applyFilters();}
+function setStF(s,btn){stF=s;var ps=document.querySelectorAll('.pills .pill:not(#favPill):not(#jpPill)');for(var i=0;i<ps.length;i++)ps[i].classList.remove('active');btn.classList.add('active');var fb=document.getElementById('favPill');if(fb)fb.classList.toggle('active',favF);var jb=document.getElementById('jpPill');if(jb)jb.classList.toggle('active',jpF);applyFilters();}
 function toggleFavF(btn){favF=!favF;btn.classList.toggle('active',favF);applyFilters();}
+function toggleJpF(btn){jpF=!jpF;btn.classList.toggle('active',jpF);applyFilters();}
 function setAcqF(a,btn){
   acqF=a;
   var pills=document.querySelectorAll('.acq-row .pill');
@@ -2134,6 +2189,7 @@ function applyFilters(){
     if(searchQ&&g.title.toLowerCase().indexOf(searchQ)===-1)continue;
     if(stF!=='all'&&(u.st||'unchecked')!==stF)continue;
     if(favF&&!u.fav)continue;
+    if(jpF&&!gameHasJapanese(g))continue;
     if(acqF!=='all'&&(u.acq||'unknown')!==acqF)continue;
     var gfk=Object.keys(gF);
     if(gfk.length>0){
@@ -2221,10 +2277,13 @@ function makeRow(g){
   var main=document.createElement('div');main.className='tmain';main.title=g.title;main.textContent=g.title;
   txWrap.appendChild(main);
   var tags=Object.keys(u.genres);if(u.og&&u.og.trim())tags.push(u.og.trim());
-  if(tags.length||u.japaneseSupport){
+  if(tags.length||u.japaneseSupport||u.volunteerJapaneseSupport){
     var td2=document.createElement('div');td2.className='ttags';
     if(u.japaneseSupport){
-      var jpTag=document.createElement('span');jpTag.className='gtag gtag-jp';jpTag.title='日本語対応あり';jpTag.textContent='🇯🇵 日本語';td2.appendChild(jpTag);
+      var jpTag=document.createElement('span');jpTag.className='gtag gtag-jp';jpTag.title='公式日本語対応あり';jpTag.textContent='🇯🇵 公式';td2.appendChild(jpTag);
+    }
+    if(u.volunteerJapaneseSupport){
+      var vjpTag=document.createElement('span');vjpTag.className='gtag gtag-vjp';vjpTag.title='有志日本語化あり';vjpTag.textContent='🛠 有志';td2.appendChild(vjpTag);
     }
     for(var ti=0;ti<Math.min(tags.length,2);ti++){
       var tag=document.createElement('span');
@@ -2254,7 +2313,7 @@ function makeRow(g){
   // platform
   var tdP=document.createElement('td');tdP.className='cp';
   if(u.url){var a=document.createElement('a');a.className='sbdg custom';a.href=u.url;a.target='_blank';a.rel='noopener';a.textContent='🔗 '+g.platform;a.addEventListener('click',function(e){e.stopPropagation();});tdP.appendChild(a);}
-  else{var pCls=g.platform==='EA app'?'EA':g.platform==='3DS'?'N3DS':g.platform;var sp2=document.createElement('span');sp2.className='sbdg '+pCls;sp2.textContent=g.platform;tdP.appendChild(sp2);}
+  else{var pCls=g.platform==='EA app'?'EA':g.platform==='3DS'?'N3DS':g.platform==='META QUEST'?'METAQUEST':g.platform==='レトロ'?'Retro':g.platform;var sp2=document.createElement('span');sp2.className='sbdg '+pCls;sp2.textContent=g.platform;tdP.appendChild(sp2);}
   tr.appendChild(tdP);
 
   // dates
@@ -2300,6 +2359,7 @@ function openModal(id){
   document.getElementById('mOther').value=u.og||'';
   document.getElementById('mFav').checked=!!u.fav;
   var mJpEl=document.getElementById('mJp');if(mJpEl)mJpEl.checked=!!u.japaneseSupport;
+  var mVjpEl=document.getElementById('mVolunteerJp');if(mVjpEl)mVjpEl.checked=!!u.volunteerJapaneseSupport;
   ensureSelectOption(document.getElementById('mPlat'),u.pl||g.platform);
   document.getElementById('mPlat').value=u.pl||g.platform;
   document.getElementById('mMemoTa').value=u.memo||'';
@@ -2350,6 +2410,7 @@ function saveModal(){
   u.memo=document.getElementById('mMemoTa').value;
   u.acq=selectedAcq;
   var mJpSave=document.getElementById('mJp');u.japaneseSupport=!!(mJpSave&&mJpSave.checked);
+  var mVjpSave=document.getElementById('mVolunteerJp');u.volunteerJapaneseSupport=!!(mVjpSave&&mVjpSave.checked);
   var newPl=document.getElementById('mPlat').value;
   u.pl=newPl;if(g)g.platform=newPl;u.am=true;
   save();saveGames();resetSmartRecs();closeModal();buildSBs();applyFilters();updateHdr();buildMemoSelect();if(curTab==='dashboard')renderDash();
@@ -2357,14 +2418,14 @@ function saveModal(){
 
 /* ── CSV ── */
 function buildCSVString(){
-  var hdr=['id','title','platform','releaseDate','addDate','lastPlayed','playCount','playTimeSec','genres','otherGenre','status','fav','stars','storeUrl','memo','acquisitionMethod','japaneseSupport'];
+  var hdr=['id','title','platform','releaseDate','addDate','lastPlayed','playCount','playTimeSec','genres','otherGenre','status','fav','stars','storeUrl','memo','acquisitionMethod','japaneseSupport','volunteerJapaneseSupport'];
   var lines=[hdr.join(',')];
   for(var i=0;i<games.length;i++){
     var g=games[i];if(g.deleted)continue;
     var u=getUD(g.id);
     var vals=[g.id,g.title,g.platform,g.rd,g.ad,g.lp,g.pc,g.pt,
       Object.keys(u.genres).join('|'),u.og||'',u.st||'unchecked',
-      u.fav?'1':'0',String(u.stars||0),u.url||'',u.memo||'',u.acq||'unknown',u.japaneseSupport?'1':'0'];
+      u.fav?'1':'0',String(u.stars||0),u.url||'',u.memo||'',u.acq||'unknown',u.japaneseSupport?'1':'0',u.volunteerJapaneseSupport?'1':'0'];
     lines.push(vals.map(function(v){return '"'+String(v).split('"').join('""')+'"';}).join(','));
   }
   return '\uFEFF'+lines.join('\n');
@@ -2449,7 +2510,7 @@ function looksLikeUserDataMap(obj){
   var hits=0;
   for(var i=0;i<keys.length;i++){
     var v=obj[keys[i]];
-    if(v&&typeof v==='object'&&!Array.isArray(v)&&(v.g!==undefined||v.genres!==undefined||v.st!==undefined||v.memo!==undefined||v.aq!==undefined||v.acq!==undefined))hits++;
+    if(v&&typeof v==='object'&&!Array.isArray(v)&&(v.g!==undefined||v.genres!==undefined||v.st!==undefined||v.memo!==undefined||v.aq!==undefined||v.acq!==undefined||v.vjp!==undefined||v.volunteerJapaneseSupport!==undefined))hits++;
   }
   return hits>0;
 }
@@ -2619,6 +2680,8 @@ function importCSVText(text,mode){
         var acq=cellIf(row,hdrs,['acquisitionMethod','acq','入手方法','購入方法']);if(acq!==undefined&&acq!=='')u.acq=normAcq(acq);
         var jp=cellIf(row,hdrs,['japaneseSupport','日本語対応','日本語対応あり']);
         if(jp!==undefined&&jp!=='')u.japaneseSupport=parseJpFlag(jp);
+        var vjp=cellIf(row,hdrs,['volunteerJapaneseSupport','有志日本語化','有志日本語対応']);
+        if(vjp!==undefined&&vjp!=='')u.volunteerJapaneseSupport=parseVolunteerJpFlag(vjp);
         u.am=true;
       }
     }
