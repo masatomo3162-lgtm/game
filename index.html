@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Game Library v1.2.2</title>
+<title>Game Library v1.2.3</title>
 <!-- App icons / PWA -->
 <link rel="icon" href="./favicon.ico?v=20260716" sizes="any">
 <link rel="icon" href="./icon.svg?v=20260716" type="image/svg+xml">
@@ -270,6 +270,14 @@ body.light .gtbl tbody tr{border-bottom:1px solid rgba(200,204,224,.5);}
 .cpbtn{background:none;border:none;cursor:pointer;font-size:10px;padding:1px 2px;opacity:0;transition:opacity .15s;line-height:1;flex-shrink:0;border-radius:3px;}
 tr:hover .cpbtn{opacity:.5;}
 .cpbtn:hover{opacity:1!important;background:var(--sf2);}
+/* タッチ端末（ホバー不可）：📋・🔍を常時表示し、タップ領域を30x30px確保。
+   ネガティブマージンでボタン枠を行のpaddingに重ね、行の高さは増やさない */
+@media (hover: none), (pointer: coarse) {
+  .cpbtn{opacity:.8;min-width:30px;min-height:30px;padding:4px;font-size:14px;margin:-5px 0;display:inline-flex;align-items:center;justify-content:center;}
+  tr:hover .cpbtn{opacity:.8;}
+  .cpbtn:active{opacity:1;background:var(--sf2);}
+  .title-actions{gap:3px;}
+}
 .delbtn{background:none;border:none;cursor:pointer;font-size:11px;padding:0;opacity:.2;transition:opacity .15s;line-height:1;color:#f87171;}
 .delbtn:hover{opacity:.8;}
 .srow{color:var(--fav);font-size:11px;white-space:nowrap;}
@@ -455,6 +463,15 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
 .genre-add-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
 .genre-add-row input{min-width:180px;}
 .genre-list{display:flex;flex-wrap:wrap;gap:5px;max-height:180px;overflow-y:auto;padding:2px 0;}
+.genre-order-list{display:flex;flex-direction:column;gap:4px;max-height:280px;overflow-y:auto;padding:2px 0;}
+.genre-order-row{display:flex;align-items:center;gap:4px;border:1px solid var(--bd);background:var(--sf2);border-radius:8px;padding:4px 6px 4px 10px;font-size:12px;}
+.gor-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.gor-btn{border:1px solid var(--bd);background:transparent;color:var(--dim);cursor:pointer;font-size:13px;line-height:1;min-width:34px;min-height:30px;border-radius:6px;flex-shrink:0;}
+.gor-btn:hover:not(:disabled){border-color:var(--ac);color:var(--ac2);}
+.gor-btn:disabled{opacity:.25;cursor:default;}
+.gor-del{color:#f87171;}
+.gor-del:hover{background:rgba(248,113,113,.12);border-color:#f87171;color:#f87171;}
+.title-actions{display:inline-flex;gap:2px;flex-shrink:0;align-items:center;}
 .genre-chip{display:flex;align-items:center;gap:5px;border:1px solid var(--bd);background:var(--sf2);border-radius:20px;padding:3px 5px 3px 9px;font-size:11px;}
 .genre-chip button{border:none;background:transparent;color:#f87171;cursor:pointer;font-size:12px;line-height:1;padding:2px 4px;border-radius:10px;}
 .genre-chip button:hover{background:rgba(248,113,113,.12);}
@@ -491,7 +508,7 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
       <div class="spill"><strong id="hTotal">0</strong>&nbsp;total</div>
       <div class="spill" style="color:var(--sp)"><strong id="hPlaying">0</strong>&nbsp;🎮</div>
       <div class="spill" style="color:var(--fav)"><strong id="hFav">0</strong>&nbsp;⭐</div>
-      <span class="ver-badge" id="verBadge">v1.2.2</span>
+      <span class="ver-badge" id="verBadge">v1.2.3</span>
     </div>
   </div>
 
@@ -619,7 +636,7 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
         <div class="dcard-b">
           <div class="add-form">
             <input class="fi" id="addTitle" placeholder="タイトル名" onkeydown="if(event.key==='Enter')addGame()">
-            <button class="btnsm" type="button" onclick="googleSearchAddTitle()">🔍 Google検索</button>
+            <button class="btnsm" type="button" id="addSearchBtn" onclick="googleSearchAddTitle()" title="ゲームタイトルをGoogleで検索">🔍 Web検索</button>
             <select class="fs" id="addPlatform">
               <option>Steam</option><option>Epic</option><option>GOG</option>
               <option>Amazon</option><option>EA app</option><option>Humble</option>
@@ -767,6 +784,7 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
       <div class="mhdr-i">
         <div class="mttl" id="mTitle"></div>
         <button class="m-cpbtn" id="mCpBtn" title="タイトルをコピー">📋</button>
+        <button class="m-cpbtn" id="mSearchBtn" title="ゲームタイトルをGoogleで検索">🔍</button>
       </div>
       <button class="mx" onclick="closeModal()">×</button>
     </div>
@@ -868,9 +886,16 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
 
 <script>
 var PC_RAW = [];
-var APP_VERSION='1.2.2';
-var APP_RELEASE='2026/07/02';
+var APP_VERSION='1.2.3';
+var APP_RELEASE='2026/07/26';
 var CHANGELOG=[
+  {v:'1.2.3',d:'2026/07/26',items:[
+    '設定画面にジャンルの並べ替え機能を追加',
+    'ゲームタイトル横にWeb検索ボタンを追加',
+    'Google・Steam・Epic・Amazonの4サイト同時検索に対応',
+    '設定画面に4サイト同時検索のON／OFF設定を追加',
+    '既存データおよびCSVとの互換性を維持'
+  ]},
   {v:'1.2.2',d:'2026/07/19',items:[
     '日本語対応・有志日本語化・お気に入りを入手方法の横へ集約',
     '全ゲーム一覧に公式／有志をまとめた日本語対応フィルターを追加',
@@ -1000,12 +1025,14 @@ var CFG = {
   backupLastDate:'',
   decor:1,
   customGenres:[],
-  hiddenGenres:[]
+  hiddenGenres:[],
+  genreOrder:[],
+  multiStoreSearch:0
 };
 function loadCFG(){
   try{
     var r=localStorage.getItem(CFG_KEY);
-    if(!r)return;
+    if(!r){normalizeGenres();return;}
     var s=JSON.parse(r);
     if(s.theme)CFG.theme=s.theme;
     if(s.startTab)CFG.startTab=s.startTab;
@@ -1017,6 +1044,8 @@ function loadCFG(){
     if(s.decor!==undefined)CFG.decor=s.decor;
     if(Array.isArray(s.customGenres))CFG.customGenres=s.customGenres;
     if(Array.isArray(s.hiddenGenres))CFG.hiddenGenres=s.hiddenGenres;
+    if(Array.isArray(s.genreOrder))CFG.genreOrder=s.genreOrder;
+    if(s.multiStoreSearch!==undefined)CFG.multiStoreSearch=s.multiStoreSearch?1:0;
   }catch(e){}
   normalizeGenres();
 }
@@ -1034,7 +1063,32 @@ function normalizeGenres(){
     if(g&&!hidden[g]&&cleaned.indexOf(g)===-1){cleaned.push(g);add(g);}
   }
   CFG.customGenres=cleaned;
-  GENRES=list;
+  /* genreOrder（表示順）を適用：
+     1) 保存順にあり現存するジャンルを先頭から並べる
+     2) 保存順に無い新規ジャンルは末尾へ
+     3) 削除済み・重複・空文字はgenreOrderから除去 */
+  var ordered=[],usedOrder={};
+  var savedOrder=Array.isArray(CFG.genreOrder)?CFG.genreOrder:[];
+  for(var i=0;i<savedOrder.length;i++){
+    var og=cleanGenreName(savedOrder[i]);
+    if(!og||usedOrder[og])continue;
+    if(list.indexOf(og)>=0){usedOrder[og]=1;ordered.push(og);}
+  }
+  for(var i=0;i<list.length;i++){
+    if(!usedOrder[list[i]]){usedOrder[list[i]]=1;ordered.push(list[i]);}
+  }
+  CFG.genreOrder=ordered.slice();
+  GENRES=ordered;
+}
+function moveGenreFromSettings(name,dir){
+  name=cleanGenreName(name);if(!name)return;
+  var idx=GENRES.indexOf(name);if(idx<0)return;
+  var to=idx+dir;if(to<0||to>=GENRES.length)return;
+  var order=GENRES.slice();
+  var tmp=order[idx];order[idx]=order[to];order[to]=tmp;
+  CFG.genreOrder=order;
+  normalizeGenres();saveCFG();
+  buildAddGenres();buildSBs();applyFilters();renderDash();buildMemoSelect();renderSettingsPage();
 }
 function addGenreFromSettings(){
   var inp=document.getElementById('genreAddInput');if(!inp)return;
@@ -1149,10 +1203,32 @@ function detectPlaynitePlatform(row,hdrs){
   }
   return 'Steam';
 }
+/* ── ゲームタイトルWeb検索（共通処理）──
+   設定OFF: Googleのみ / ON: Google・Steam・Epic・Amazonを同一クリックイベント内で同期的に開く
+   （ポップアップブロック対策のため setTimeout / Promise / await は挟まない） */
+function searchGameTitle(title){
+  title=String(title||'').trim();
+  if(!title){alert('検索するゲームタイトルがありません。');return;}
+  var urls=['https://www.google.com/search?q='+encodeURIComponent(title+' game')];
+  if(CFG.multiStoreSearch){
+    urls.push('https://store.steampowered.com/search/?term='+encodeURIComponent(title));
+    urls.push('https://store.epicgames.com/ja/browse?q='+encodeURIComponent(title)+'&sortBy=relevancy&sortDir=DESC&count=40');
+    urls.push('https://www.amazon.co.jp/s?k='+encodeURIComponent(title+' \u30b2\u30fc\u30e0'));
+  }
+  for(var i=0;i<urls.length;i++){
+    try{window.open(urls[i],'_blank','noopener,noreferrer');}catch(e){/* 一部ブロックされてもアプリは継続 */}
+  }
+}
+function searchBtnTitle(){
+  return CFG.multiStoreSearch?'Google\u30fbSteam\u30fbEpic\u30fbAmazon\u3067\u691c\u7d22':'\u30b2\u30fc\u30e0\u30bf\u30a4\u30c8\u30eb\u3092Google\u3067\u691c\u7d22';
+}
 function googleSearchAddTitle(){
-  var inp=document.getElementById('addTitle');var title=inp?inp.value.trim():'';
-  if(!title){alert('検索するゲームタイトルを入力してください。');return;}
-  window.open('https://www.google.com/search?q='+encodeURIComponent(title+' game'),'_blank','noopener');
+  var inp=document.getElementById('addTitle');
+  searchGameTitle(inp?inp.value:'');
+}
+function updateSearchTooltips(){
+  var b=document.getElementById('addSearchBtn');if(b)b.title=searchBtnTitle();
+  var m=document.getElementById('mSearchBtn');if(m)m.title=searchBtnTitle();
 }
 
 function applyDecor(){
@@ -1529,6 +1605,7 @@ function init(){
   buildSBs();
   updateHdr();
   applyPanels();
+  updateSearchTooltips();
   renderDash();
   applyFilters();
   setupVS();
@@ -2293,9 +2370,13 @@ function makeRow(g){
     if(tags.length>2){var more=document.createElement('span');more.className='gtag gtag-o';more.textContent='+'+(tags.length-2);td2.appendChild(more);}
     txWrap.appendChild(td2);
   }
+  var actWrap=document.createElement('span');actWrap.className='title-actions';
   var cpb=document.createElement('button');cpb.className='cpbtn';cpb.title='タイトルをコピー';cpb.textContent='📋';
   (function(title){cpb.addEventListener('click',function(e){e.stopPropagation();navigator.clipboard.writeText(title).then(function(){cpb.textContent='✅';setTimeout(function(){cpb.textContent='📋';},1000);}).catch(function(){});});})(g.title);
-  titleCell.appendChild(txWrap);titleCell.appendChild(cpb);
+  var srb=document.createElement('button');srb.className='cpbtn';srb.title=searchBtnTitle();srb.textContent='🔍';
+  (function(title){srb.addEventListener('click',function(e){e.stopPropagation();searchGameTitle(title);});})(g.title);
+  actWrap.appendChild(cpb);actWrap.appendChild(srb);
+  titleCell.appendChild(txWrap);titleCell.appendChild(actWrap);
   tdT.appendChild(titleCell);tr.appendChild(tdT);
 
   // genres col
@@ -2336,7 +2417,7 @@ function makeRow(g){
   (function(gid,title){db.addEventListener('click',function(e){e.stopPropagation();showConfirm('「'+title+'」を削除しますか？',function(){deleteGame(gid);});});})(g.id,g.title);
   tdD.appendChild(db);tr.appendChild(tdD);
 
-  (function(gid){tr.addEventListener('click',function(e){if(e.target.closest('.cf')||e.target.closest('.cd')||e.target.closest('.cpbtn'))return;openModal(gid);});})(g.id);
+  (function(gid){tr.addEventListener('click',function(e){if(e.target.closest('.cf')||e.target.closest('.cd')||e.target.closest('.cpbtn')||e.target.closest('.title-actions'))return;openModal(gid);});})(g.id);
   return tr;
 }
 
@@ -2367,6 +2448,8 @@ function openModal(id){
   // modal copy button
   var mcb=document.getElementById('mCpBtn');
   if(mcb){mcb.onclick=function(){navigator.clipboard.writeText(g.title).then(function(){mcb.textContent='✅';setTimeout(function(){mcb.textContent='📋';},1000);}).catch(function(){});};}
+  var msb=document.getElementById('mSearchBtn');
+  if(msb){msb.title=searchBtnTitle();msb.onclick=function(){searchGameTitle(g.title);};}
   updMStar(mStar);updMStat(mStat);
   var grid=document.getElementById('mGGrid');grid.innerHTML='';
   for(var i=0;i<GENRES.length;i++){
@@ -2804,17 +2887,43 @@ function renderSettingsPage(){
   var gb=document.createElement('button');gb.className='btnsm';gb.textContent='＋ 追加';gb.addEventListener('click',addGenreFromSettings);
   addRow.appendChild(gi);addRow.appendChild(gb);gm.appendChild(addRow);
   var note=document.createElement('div');note.className='genre-note';note.textContent='削除したジャンルは選択肢から消え、既存タイトルからも外れます。必要になったら同じ名前で再追加できます。';gm.appendChild(note);
-  var gl=document.createElement('div');gl.className='genre-list';
+  var orderNote=document.createElement('div');orderNote.className='genre-note';
+  orderNote.textContent='「↑」「↓」で表示順を変更できます。順番は登録・編集画面や絞り込みの選択肢にも反映されます。';
+  gm.appendChild(orderNote);
+  var gl=document.createElement('div');gl.className='genre-order-list';
   for(var gii=0;gii<GENRES.length;gii++){
-    (function(genre){
-      var chip=document.createElement('div');chip.className='genre-chip';
-      var name=document.createElement('span');name.textContent=genre;
-      var del=document.createElement('button');del.type='button';del.title='削除';del.textContent='×';
+    (function(genre,idx,total){
+      var row=document.createElement('div');row.className='genre-order-row';
+      var name=document.createElement('span');name.className='gor-name';name.textContent=genre;
+      var up=document.createElement('button');up.type='button';up.className='gor-btn';up.title='1つ上へ';up.textContent='↑';
+      if(idx===0){up.disabled=true;}else{up.addEventListener('click',function(){moveGenreFromSettings(genre,-1);});}
+      var down=document.createElement('button');down.type='button';down.className='gor-btn';down.title='1つ下へ';down.textContent='↓';
+      if(idx===total-1){down.disabled=true;}else{down.addEventListener('click',function(){moveGenreFromSettings(genre,1);});}
+      var del=document.createElement('button');del.type='button';del.className='gor-btn gor-del';del.title='削除';del.textContent='×';
       del.addEventListener('click',function(){deleteGenreFromSettings(genre);});
-      chip.appendChild(name);chip.appendChild(del);gl.appendChild(chip);
-    })(GENRES[gii]);
+      row.appendChild(name);row.appendChild(up);row.appendChild(down);row.appendChild(del);
+      gl.appendChild(row);
+    })(GENRES[gii],gii,GENRES.length);
   }
   gm.appendChild(gl);sg.rows.appendChild(gm);el.appendChild(sg.sec);
+
+  // ── 検索設定 ──
+  var ssrch=makeSec('🔍','検索設定');
+  var rsr=makeRow('4サイト同時検索','ゲームタイトル検索時にGoogle・Steam・Epic・Amazonをそれぞれ新しいタブで開きます');
+  var srStatus=document.createElement('div');
+  srStatus.style.cssText='font-size:11px;color:var(--mt);text-align:right;margin-right:8px;';
+  srStatus.textContent=CFG.multiStoreSearch?'Google・Steam・Epic・Amazonの4サイトを開く':'Google検索のみ';
+  rsr.ctrl.appendChild(srStatus);
+  rsr.ctrl.appendChild(makeSwitch(!!CFG.multiStoreSearch,function(v){
+    CFG.multiStoreSearch=v?1:0;saveCFG();
+    srStatus.textContent=CFG.multiStoreSearch?'Google・Steam・Epic・Amazonの4サイトを開く':'Google検索のみ';
+    updateSearchTooltips();applyFilters();
+  }));
+  ssrch.rows.appendChild(rsr.row);
+  var srNote=document.createElement('div');srNote.className='genre-note';
+  srNote.textContent='4サイト同時検索では、ブラウザのポップアップ許可が必要になる場合があります。';
+  ssrch.rows.appendChild(srNote);
+  el.appendChild(ssrch.sec);
 
 
   // ── ダッシュボード ──
