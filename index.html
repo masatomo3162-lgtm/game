@@ -636,7 +636,7 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
         <div class="dcard-b">
           <div class="add-form">
             <input class="fi" id="addTitle" placeholder="タイトル名" onkeydown="if(event.key==='Enter')addGame()">
-            <button class="btnsm" type="button" id="addSearchBtn" onclick="googleSearchAddTitle()" title="ゲームタイトルをGoogleで検索">🔍 Web検索</button>
+            <button class="btnsm" type="button" id="addSearchBtn" onclick="searchAddTitle()" title="ゲームタイトルをGoogleで検索">🔍 Web検索</button>
             <select class="fs" id="addPlatform">
               <option>Steam</option><option>Epic</option><option>GOG</option>
               <option>Amazon</option><option>EA app</option><option>Humble</option>
@@ -892,8 +892,7 @@ var CHANGELOG=[
   {v:'1.2.3',d:'2026/07/26',items:[
     '設定画面にジャンルの並べ替え機能を追加',
     'ゲームタイトル横にWeb検索ボタンを追加',
-    'Google・Steam・Epic・Amazonの4サイト同時検索に対応',
-    '設定画面に4サイト同時検索のON／OFF設定を追加',
+    '登録プラットフォームに応じたゲームタイトル検索に対応',
     '既存データおよびCSVとの互換性を維持'
   ]},
   {v:'1.2.2',d:'2026/07/19',items:[
@@ -1026,8 +1025,7 @@ var CFG = {
   decor:1,
   customGenres:[],
   hiddenGenres:[],
-  genreOrder:[],
-  multiStoreSearch:0
+  genreOrder:[]
 };
 function loadCFG(){
   try{
@@ -1045,7 +1043,7 @@ function loadCFG(){
     if(Array.isArray(s.customGenres))CFG.customGenres=s.customGenres;
     if(Array.isArray(s.hiddenGenres))CFG.hiddenGenres=s.hiddenGenres;
     if(Array.isArray(s.genreOrder))CFG.genreOrder=s.genreOrder;
-    if(s.multiStoreSearch!==undefined)CFG.multiStoreSearch=s.multiStoreSearch?1:0;
+    /* 旧設定のmultiStoreSearchは読み込まず無視する（残っていてもエラーにしない） */
   }catch(e){}
   normalizeGenres();
 }
@@ -1204,31 +1202,59 @@ function detectPlaynitePlatform(row,hdrs){
   return 'Steam';
 }
 /* ── ゲームタイトルWeb検索（共通処理）──
-   設定OFF: Googleのみ / ON: Google・Steam・Epic・Amazonを同一クリックイベント内で同期的に開く
-   （ポップアップブロック対策のため setTimeout / Promise / await は挟まない） */
-function searchGameTitle(title){
+   登録プラットフォームに応じた検索先を1つだけ新しいタブで開く（複数タブは開かない） */
+function buildGameSearchUrl(title,platform){
+  var p=String(platform||'').trim();
+  var pl=p.toLowerCase();
+  function g(q){return 'https://www.google.com/search?q='+encodeURIComponent(q);}
+  if(pl==='steam')return 'https://store.steampowered.com/search/?term='+encodeURIComponent(title);
+  if(pl==='epic')return 'https://store.epicgames.com/ja/browse?q='+encodeURIComponent(title)+'&sortBy=relevancy&sortDir=DESC&count=40';
+  if(pl==='amazon')return g('Amazon Games '+title);
+  if(pl==='gog')return g('GOG '+title);
+  if(pl==='ea app')return g('EA app '+title);
+  if(pl==='humble')return g('Humble Bundle '+title);
+  if(pl==='meta quest')return g('Meta Quest '+title);
+  if(p==='\u30ec\u30c8\u30ed')return g('\u30ec\u30c8\u30ed\u30b2\u30fc\u30e0 '+title);
+  var consoles=['PS1','PS2','PS3','PS4','PS5','PSP','VITA','Switch','3DS','GC'];
+  for(var i=0;i<consoles.length;i++){
+    if(pl===consoles[i].toLowerCase())return g(consoles[i]+' '+title);
+  }
+  // 未登録・不明・想定外のプラットフォームはタイトルのみでGoogle検索
+  return g(title+' game');
+}
+function searchGameTitle(title,platform){
   title=String(title||'').trim();
-  if(!title){alert('検索するゲームタイトルがありません。');return;}
-  var urls=['https://www.google.com/search?q='+encodeURIComponent(title+' game')];
-  if(CFG.multiStoreSearch){
-    urls.push('https://store.steampowered.com/search/?term='+encodeURIComponent(title));
-    urls.push('https://store.epicgames.com/ja/browse?q='+encodeURIComponent(title)+'&sortBy=relevancy&sortDir=DESC&count=40');
-    urls.push('https://www.amazon.co.jp/s?k='+encodeURIComponent(title+' \u30b2\u30fc\u30e0'));
-  }
-  for(var i=0;i<urls.length;i++){
-    try{window.open(urls[i],'_blank','noopener,noreferrer');}catch(e){/* 一部ブロックされてもアプリは継続 */}
-  }
+  platform=String(platform||'').trim();
+  if(!title){alert('\u691c\u7d22\u3059\u308b\u30b2\u30fc\u30e0\u30bf\u30a4\u30c8\u30eb\u304c\u3042\u308a\u307e\u305b\u3093\u3002');return;}
+  var url=buildGameSearchUrl(title,platform);
+  try{window.open(url,'_blank','noopener,noreferrer');}catch(e){}
 }
-function searchBtnTitle(){
-  return CFG.multiStoreSearch?'Google\u30fbSteam\u30fbEpic\u30fbAmazon\u3067\u691c\u7d22':'\u30b2\u30fc\u30e0\u30bf\u30a4\u30c8\u30eb\u3092Google\u3067\u691c\u7d22';
+function searchBtnTitleFor(platform){
+  var p=String(platform||'').trim();
+  var pl=p.toLowerCase();
+  if(pl==='steam')return 'Steam\u30b9\u30c8\u30a2\u3067\u691c\u7d22';
+  if(pl==='epic')return 'Epic Games Store\u3067\u691c\u7d22';
+  if(pl==='amazon')return 'Amazon Games\u306b\u3064\u3044\u3066Google\u691c\u7d22';
+  if(pl==='gog')return 'GOG\u7248\u3092Google\u691c\u7d22';
+  if(pl==='ea app')return 'EA app\u7248\u3092Google\u691c\u7d22';
+  if(pl==='humble')return 'Humble Bundle\u7248\u3092Google\u691c\u7d22';
+  if(pl==='meta quest')return 'Meta Quest\u7248\u3092Google\u691c\u7d22';
+  if(p==='\u30ec\u30c8\u30ed')return '\u30ec\u30c8\u30ed\u30b2\u30fc\u30e0\u3068\u3057\u3066Google\u691c\u7d22';
+  var consoles=['PS1','PS2','PS3','PS4','PS5','PSP','VITA','Switch','3DS','GC'];
+  for(var i=0;i<consoles.length;i++){
+    if(pl===consoles[i].toLowerCase())return consoles[i]+'\u7248\u3092Google\u691c\u7d22';
+  }
+  return '\u30b2\u30fc\u30e0\u30bf\u30a4\u30c8\u30eb\u3092Google\u691c\u7d22';
 }
-function googleSearchAddTitle(){
+function searchAddTitle(){
   var inp=document.getElementById('addTitle');
-  searchGameTitle(inp?inp.value:'');
+  var plat=document.getElementById('addPlatform');
+  searchGameTitle(inp?inp.value:'',plat?plat.value:'');
 }
-function updateSearchTooltips(){
-  var b=document.getElementById('addSearchBtn');if(b)b.title=searchBtnTitle();
-  var m=document.getElementById('mSearchBtn');if(m)m.title=searchBtnTitle();
+function updateAddSearchTooltip(){
+  var b=document.getElementById('addSearchBtn');
+  var plat=document.getElementById('addPlatform');
+  if(b&&plat)b.title=searchBtnTitleFor(plat.value);
 }
 
 function applyDecor(){
@@ -1605,7 +1631,9 @@ function init(){
   buildSBs();
   updateHdr();
   applyPanels();
-  updateSearchTooltips();
+  updateAddSearchTooltip();
+  var apEl=document.getElementById('addPlatform');
+  if(apEl)apEl.addEventListener('change',updateAddSearchTooltip);
   renderDash();
   applyFilters();
   setupVS();
@@ -2373,8 +2401,9 @@ function makeRow(g){
   var actWrap=document.createElement('span');actWrap.className='title-actions';
   var cpb=document.createElement('button');cpb.className='cpbtn';cpb.title='タイトルをコピー';cpb.textContent='📋';
   (function(title){cpb.addEventListener('click',function(e){e.stopPropagation();navigator.clipboard.writeText(title).then(function(){cpb.textContent='✅';setTimeout(function(){cpb.textContent='📋';},1000);}).catch(function(){});});})(g.title);
-  var srb=document.createElement('button');srb.className='cpbtn';srb.title=searchBtnTitle();srb.textContent='🔍';
-  (function(title){srb.addEventListener('click',function(e){e.stopPropagation();searchGameTitle(title);});})(g.title);
+  var rowPlat=(u&&u.pl)?u.pl:g.platform;
+  var srb=document.createElement('button');srb.className='cpbtn';srb.title=searchBtnTitleFor(rowPlat);srb.textContent='🔍';
+  (function(title,plat){srb.addEventListener('click',function(e){e.stopPropagation();searchGameTitle(title,plat);});})(g.title,rowPlat);
   actWrap.appendChild(cpb);actWrap.appendChild(srb);
   titleCell.appendChild(txWrap);titleCell.appendChild(actWrap);
   tdT.appendChild(titleCell);tr.appendChild(tdT);
@@ -2449,7 +2478,12 @@ function openModal(id){
   var mcb=document.getElementById('mCpBtn');
   if(mcb){mcb.onclick=function(){navigator.clipboard.writeText(g.title).then(function(){mcb.textContent='✅';setTimeout(function(){mcb.textContent='📋';},1000);}).catch(function(){});};}
   var msb=document.getElementById('mSearchBtn');
-  if(msb){msb.title=searchBtnTitle();msb.onclick=function(){searchGameTitle(g.title);};}
+  var mPlatEl=document.getElementById('mPlat');
+  if(msb){
+    msb.title=searchBtnTitleFor(mPlatEl?mPlatEl.value:'');
+    msb.onclick=function(){searchGameTitle(g.title,mPlatEl?mPlatEl.value:'');};
+    if(mPlatEl)mPlatEl.onchange=function(){msb.title=searchBtnTitleFor(mPlatEl.value);};
+  }
   updMStar(mStar);updMStat(mStat);
   var grid=document.getElementById('mGGrid');grid.innerHTML='';
   for(var i=0;i<GENRES.length;i++){
@@ -2907,23 +2941,6 @@ function renderSettingsPage(){
   }
   gm.appendChild(gl);sg.rows.appendChild(gm);el.appendChild(sg.sec);
 
-  // ── 検索設定 ──
-  var ssrch=makeSec('🔍','検索設定');
-  var rsr=makeRow('4サイト同時検索','ゲームタイトル検索時にGoogle・Steam・Epic・Amazonをそれぞれ新しいタブで開きます');
-  var srStatus=document.createElement('div');
-  srStatus.style.cssText='font-size:11px;color:var(--mt);text-align:right;margin-right:8px;';
-  srStatus.textContent=CFG.multiStoreSearch?'Google・Steam・Epic・Amazonの4サイトを開く':'Google検索のみ';
-  rsr.ctrl.appendChild(srStatus);
-  rsr.ctrl.appendChild(makeSwitch(!!CFG.multiStoreSearch,function(v){
-    CFG.multiStoreSearch=v?1:0;saveCFG();
-    srStatus.textContent=CFG.multiStoreSearch?'Google・Steam・Epic・Amazonの4サイトを開く':'Google検索のみ';
-    updateSearchTooltips();applyFilters();
-  }));
-  ssrch.rows.appendChild(rsr.row);
-  var srNote=document.createElement('div');srNote.className='genre-note';
-  srNote.textContent='4サイト同時検索では、ブラウザのポップアップ許可が必要になる場合があります。';
-  ssrch.rows.appendChild(srNote);
-  el.appendChild(ssrch.sec);
 
 
   // ── ダッシュボード ──
