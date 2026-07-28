@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Game Library v1.2.3</title>
+<title>Game Library v1.2.4</title>
 <!-- App icons / PWA -->
 <link rel="icon" href="./favicon.ico?v=20260716" sizes="any">
 <link rel="icon" href="./icon.svg?v=20260716" type="image/svg+xml">
@@ -464,11 +464,17 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
 .genre-add-row input{min-width:180px;}
 .genre-list{display:flex;flex-wrap:wrap;gap:5px;max-height:180px;overflow-y:auto;padding:2px 0;}
 .genre-order-list{display:flex;flex-direction:column;gap:4px;max-height:280px;overflow-y:auto;padding:2px 0;}
-.genre-order-row{display:flex;align-items:center;gap:4px;border:1px solid var(--bd);background:var(--sf2);border-radius:8px;padding:4px 6px 4px 10px;font-size:12px;}
+.genre-order-row{display:flex;align-items:center;gap:4px;border:1px solid var(--bd);background:var(--sf2);border-radius:8px;padding:4px 6px 4px 4px;font-size:12px;}
+.gor-handle{display:flex;align-items:center;justify-content:center;min-width:32px;min-height:32px;flex-shrink:0;color:var(--dim);font-size:15px;line-height:1;border-radius:6px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
+.gor-handle:hover{color:var(--ac2);background:rgba(255,255,255,.05);}
+.gor-handle:active{cursor:grabbing;}
+.genre-order-row.gor-dragging{opacity:.55;transform:scale(1.02);box-shadow:0 4px 14px rgba(0,0,0,.4);border-color:var(--ac);background:var(--sf);position:relative;z-index:5;}
 .gor-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .gor-btn{border:1px solid var(--bd);background:transparent;color:var(--dim);cursor:pointer;font-size:13px;line-height:1;min-width:34px;min-height:30px;border-radius:6px;flex-shrink:0;}
 .gor-btn:hover:not(:disabled){border-color:var(--ac);color:var(--ac2);}
 .gor-btn:disabled{opacity:.25;cursor:default;}
+.gor-btn.gor-sub{opacity:.5;font-size:11px;min-width:28px;min-height:26px;}
+.gor-btn.gor-sub:hover:not(:disabled){opacity:1;}
 .gor-del{color:#f87171;}
 .gor-del:hover{background:rgba(248,113,113,.12);border-color:#f87171;color:#f87171;}
 .title-actions{display:inline-flex;gap:2px;flex-shrink:0;align-items:center;}
@@ -508,7 +514,7 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
       <div class="spill"><strong id="hTotal">0</strong>&nbsp;total</div>
       <div class="spill" style="color:var(--sp)"><strong id="hPlaying">0</strong>&nbsp;🎮</div>
       <div class="spill" style="color:var(--fav)"><strong id="hFav">0</strong>&nbsp;⭐</div>
-      <span class="ver-badge" id="verBadge">v1.2.3</span>
+      <span class="ver-badge" id="verBadge">v1.2.4</span>
     </div>
   </div>
 
@@ -886,9 +892,14 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
 
 <script>
 var PC_RAW = [];
-var APP_VERSION='1.2.3';
-var APP_RELEASE='2026/07/26';
+var APP_VERSION='1.2.4';
+var APP_RELEASE='2026/07/28';
 var CHANGELOG=[
+  {v:'1.2.4',d:'2026/07/28',items:[
+    '設定画面のジャンル並べ替えをドラッグ＆ドロップに対応',
+    'マウス・タッチ操作の両方に対応（Pointer Events使用）',
+    '↑↓ボタンによる並べ替えも補助操作として維持'
+  ]},
   {v:'1.2.3',d:'2026/07/26',items:[
     '設定画面にジャンルの並べ替え機能を追加',
     'ゲームタイトル横にWeb検索ボタンを追加',
@@ -1088,6 +1099,75 @@ function moveGenreFromSettings(name,dir){
   normalizeGenres();saveCFG();
   buildAddGenres();buildSBs();applyFilters();renderDash();buildMemoSelect();renderSettingsPage();
 }
+
+/* ── ジャンルのドラッグ＆ドロップ並べ替え（Pointer Events / v1.2.4） ── */
+var genreDragState=null;
+var gdRAF=(typeof requestAnimationFrame==='function')?function(f){return requestAnimationFrame(f);}:function(f){return setTimeout(f,16);};
+var gdCancelRAF=(typeof cancelAnimationFrame==='function')?function(id){cancelAnimationFrame(id);}:function(id){clearTimeout(id);};
+function cancelGenreDrag(rerender){
+  var st=genreDragState;if(!st)return;
+  genreDragState=null;
+  if(st.raf)gdCancelRAF(st.raf);
+  try{if(st.handle.releasePointerCapture&&st.pointerId!=null)st.handle.releasePointerCapture(st.pointerId);}catch(e){}
+  st.handle.removeEventListener('pointermove',st.onMove);
+  st.handle.removeEventListener('pointerup',st.onUp);
+  st.handle.removeEventListener('pointercancel',st.onCancel);
+  if(st.row&&st.row.classList)st.row.classList.remove('gor-dragging');
+  if(rerender)renderSettingsPage();
+}
+function commitGenreDrag(){
+  var st=genreDragState;if(!st)return;
+  var gl=st.list;
+  cancelGenreDrag(false);
+  var rows=gl.querySelectorAll('.genre-order-row');
+  var order=[];
+  for(var i=0;i<rows.length;i++){var g=rows[i].getAttribute('data-genre');if(g)order.push(g);}
+  if(!order.length)return;
+  var changed=(order.length!==GENRES.length);
+  if(!changed){for(var j=0;j<order.length;j++){if(order[j]!==GENRES[j]){changed=true;break;}}}
+  if(!changed)return;
+  CFG.genreOrder=order;
+  normalizeGenres();saveCFG();
+  buildAddGenres();buildSBs();applyFilters();renderDash();buildMemoSelect();renderSettingsPage();
+}
+function positionGenreRow(gl,dragRow,clientY){
+  var rows=gl.children,target=null;
+  for(var i=0;i<rows.length;i++){
+    var r=rows[i];if(r===dragRow)continue;
+    var rc=r.getBoundingClientRect();
+    if(clientY<rc.top+rc.height/2){target=r;break;}
+  }
+  if(target){if(target!==dragRow.nextSibling&&target!==dragRow)gl.insertBefore(dragRow,target);}
+  else if(gl.lastElementChild!==dragRow){gl.appendChild(dragRow);}
+}
+function startGenreDrag(e,handle,row,gl){
+  if(genreDragState)return;
+  if(e.pointerType==='mouse'&&e.button!==0)return;
+  if(e.preventDefault)e.preventDefault();
+  var st={handle:handle,row:row,list:gl,pointerId:e.pointerId,lastY:e.clientY,raf:0};
+  st.onMove=function(ev){if(genreDragState!==st)return;st.lastY=ev.clientY;if(ev.preventDefault)ev.preventDefault();};
+  st.onUp=function(){if(genreDragState!==st)return;commitGenreDrag();};
+  st.onCancel=function(){if(genreDragState!==st)return;cancelGenreDrag(true);};
+  handle.addEventListener('pointermove',st.onMove);
+  handle.addEventListener('pointerup',st.onUp);
+  handle.addEventListener('pointercancel',st.onCancel);
+  try{if(handle.setPointerCapture&&e.pointerId!=null)handle.setPointerCapture(e.pointerId);}catch(err){}
+  row.classList.add('gor-dragging');
+  genreDragState=st;
+  function tick(){
+    if(genreDragState!==st)return;
+    if(gl.isConnected===false){cancelGenreDrag(false);return;}
+    var rect=gl.getBoundingClientRect();
+    var zone=28,speed=0;
+    if(st.lastY<rect.top+zone)speed=-Math.ceil((rect.top+zone-st.lastY)/4);
+    else if(st.lastY>rect.bottom-zone)speed=Math.ceil((st.lastY-(rect.bottom-zone))/4);
+    if(speed)gl.scrollTop+=speed;
+    positionGenreRow(gl,row,st.lastY);
+    st.raf=gdRAF(tick);
+  }
+  st.raf=gdRAF(tick);
+}
+
 function addGenreFromSettings(){
   var inp=document.getElementById('genreAddInput');if(!inp)return;
   var name=cleanGenreName(inp.value);
@@ -2858,6 +2938,7 @@ function dlBackup(csv,fname){
 
 /* ── SETTINGS PAGE ── */
 function renderSettingsPage(){
+  if(genreDragState)cancelGenreDrag(false);
   var el=document.getElementById('settingsBody');if(!el)return;
   el.innerHTML='';
 
@@ -2922,20 +3003,22 @@ function renderSettingsPage(){
   addRow.appendChild(gi);addRow.appendChild(gb);gm.appendChild(addRow);
   var note=document.createElement('div');note.className='genre-note';note.textContent='削除したジャンルは選択肢から消え、既存タイトルからも外れます。必要になったら同じ名前で再追加できます。';gm.appendChild(note);
   var orderNote=document.createElement('div');orderNote.className='genre-note';
-  orderNote.textContent='「↑」「↓」で表示順を変更できます。順番は登録・編集画面や絞り込みの選択肢にも反映されます。';
+  orderNote.textContent='左端の「⠿」をドラッグして表示順を並べ替えられます（「↑」「↓」でも移動可）。順番は登録・編集画面や絞り込みの選択肢にも反映されます。';
   gm.appendChild(orderNote);
   var gl=document.createElement('div');gl.className='genre-order-list';
   for(var gii=0;gii<GENRES.length;gii++){
     (function(genre,idx,total){
-      var row=document.createElement('div');row.className='genre-order-row';
+      var row=document.createElement('div');row.className='genre-order-row';row.setAttribute('data-genre',genre);
+      var handle=document.createElement('span');handle.className='gor-handle';handle.title='ドラッグで並べ替え';handle.textContent='⠿';
+      handle.addEventListener('pointerdown',function(e){startGenreDrag(e,handle,row,gl);});
       var name=document.createElement('span');name.className='gor-name';name.textContent=genre;
-      var up=document.createElement('button');up.type='button';up.className='gor-btn';up.title='1つ上へ';up.textContent='↑';
+      var up=document.createElement('button');up.type='button';up.className='gor-btn gor-sub';up.title='1つ上へ';up.textContent='↑';
       if(idx===0){up.disabled=true;}else{up.addEventListener('click',function(){moveGenreFromSettings(genre,-1);});}
-      var down=document.createElement('button');down.type='button';down.className='gor-btn';down.title='1つ下へ';down.textContent='↓';
+      var down=document.createElement('button');down.type='button';down.className='gor-btn gor-sub';down.title='1つ下へ';down.textContent='↓';
       if(idx===total-1){down.disabled=true;}else{down.addEventListener('click',function(){moveGenreFromSettings(genre,1);});}
       var del=document.createElement('button');del.type='button';del.className='gor-btn gor-del';del.title='削除';del.textContent='×';
       del.addEventListener('click',function(){deleteGenreFromSettings(genre);});
-      row.appendChild(name);row.appendChild(up);row.appendChild(down);row.appendChild(del);
+      row.appendChild(handle);row.appendChild(name);row.appendChild(up);row.appendChild(down);row.appendChild(del);
       gl.appendChild(row);
     })(GENRES[gii],gii,GENRES.length);
   }
