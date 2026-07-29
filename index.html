@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Game Library v1.2.5</title>
+<title>Game Library v1.2.6</title>
 <!-- App icons / PWA -->
 <link rel="icon" href="./favicon.ico?v=20260716" sizes="any">
 <link rel="icon" href="./icon.svg?v=20260716" type="image/svg+xml">
@@ -518,7 +518,7 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
       <div class="spill"><strong id="hTotal">0</strong>&nbsp;total</div>
       <div class="spill" style="color:var(--sp)"><strong id="hPlaying">0</strong>&nbsp;🎮</div>
       <div class="spill" style="color:var(--fav)"><strong id="hFav">0</strong>&nbsp;⭐</div>
-      <span class="ver-badge" id="verBadge">v1.2.5</span>
+      <span class="ver-badge" id="verBadge">v1.2.6</span>
     </div>
   </div>
 
@@ -896,9 +896,15 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
 
 <script>
 var PC_RAW = [];
-var APP_VERSION='1.2.5';
+var APP_VERSION='1.2.6';
 var APP_RELEASE='2026/07/29';
 var CHANGELOG=[
+  {v:'1.2.6',d:'2026/07/29',items:[
+    'Web検索時に登録プラットフォームとSteamを組み合わせて検索するよう変更',
+    'Epicは「Steam Epic Games＋ゲームタイトル」でGoogle検索',
+    'Amazonは「Steam Amazon Games＋ゲームタイトル」でGoogle検索',
+    '検索タブは従来どおり1つだけ開く仕様を維持'
+  ]},
   {v:'1.2.5',d:'2026/07/29',items:[
     '経過期間の基準を「追加日」から「発売日」に変更',
     '経過年月を暦ベース計算に変更（平均30.44日換算をやめ、丸1年で正しく「○年」になるよう修正）',
@@ -1296,25 +1302,26 @@ function detectPlaynitePlatform(row,hdrs){
   return 'Steam';
 }
 /* ── ゲームタイトルWeb検索（共通処理）──
-   登録プラットフォームに応じた検索先を1つだけ新しいタブで開く（複数タブは開かない） */
+   Steam以外は「Steam＋登録プラットフォーム＋ゲームタイトル」でGoogle検索する。
+   検索先は1つだけ新しいタブで開き、複数タブは開かない。 */
 function buildGameSearchUrl(title,platform){
   var p=String(platform||'').trim();
   var pl=p.toLowerCase();
   function g(q){return 'https://www.google.com/search?q='+encodeURIComponent(q);}
   if(pl==='steam')return 'https://store.steampowered.com/search/?term='+encodeURIComponent(title);
-  if(pl==='epic')return 'https://store.epicgames.com/ja/browse?q='+encodeURIComponent(title)+'&sortBy=relevancy&sortDir=DESC&count=40';
-  if(pl==='amazon')return g('Amazon Games '+title);
-  if(pl==='gog')return g('GOG '+title);
-  if(pl==='ea app')return g('EA app '+title);
-  if(pl==='humble')return g('Humble Bundle '+title);
-  if(pl==='meta quest')return g('Meta Quest '+title);
-  if(p==='\u30ec\u30c8\u30ed')return g('\u30ec\u30c8\u30ed\u30b2\u30fc\u30e0 '+title);
+  if(pl==='epic')return g('Steam Epic Games '+title);
+  if(pl==='amazon')return g('Steam Amazon Games '+title);
+  if(pl==='gog')return g('Steam GOG '+title);
+  if(pl==='ea app')return g('Steam EA app '+title);
+  if(pl==='humble')return g('Steam Humble Bundle '+title);
+  if(pl==='meta quest')return g('Steam Meta Quest '+title);
+  if(p==='\u30ec\u30c8\u30ed')return g('Steam \u30ec\u30c8\u30ed\u30b2\u30fc\u30e0 '+title);
   var consoles=['PS1','PS2','PS3','PS4','PS5','PSP','VITA','Switch','3DS','GC'];
   for(var i=0;i<consoles.length;i++){
-    if(pl===consoles[i].toLowerCase())return g(consoles[i]+' '+title);
+    if(pl===consoles[i].toLowerCase())return g('Steam '+consoles[i]+' '+title);
   }
-  // 未登録・不明・想定外のプラットフォームはタイトルのみでGoogle検索
-  return g(title+' game');
+  // 未登録・不明・想定外でも、Steam版の有無を確認できるようSteamを必ず含める
+  return g('Steam '+title+' game');
 }
 function searchGameTitle(title,platform){
   title=String(title||'').trim();
@@ -1327,18 +1334,18 @@ function searchBtnTitleFor(platform){
   var p=String(platform||'').trim();
   var pl=p.toLowerCase();
   if(pl==='steam')return 'Steam\u30b9\u30c8\u30a2\u3067\u691c\u7d22';
-  if(pl==='epic')return 'Epic Games Store\u3067\u691c\u7d22';
-  if(pl==='amazon')return 'Amazon Games\u306b\u3064\u3044\u3066Google\u691c\u7d22';
-  if(pl==='gog')return 'GOG\u7248\u3092Google\u691c\u7d22';
-  if(pl==='ea app')return 'EA app\u7248\u3092Google\u691c\u7d22';
-  if(pl==='humble')return 'Humble Bundle\u7248\u3092Google\u691c\u7d22';
-  if(pl==='meta quest')return 'Meta Quest\u7248\u3092Google\u691c\u7d22';
-  if(p==='\u30ec\u30c8\u30ed')return '\u30ec\u30c8\u30ed\u30b2\u30fc\u30e0\u3068\u3057\u3066Google\u691c\u7d22';
+  if(pl==='epic')return 'Steam\u30fbEpic Games\u306b\u3064\u3044\u3066Google\u691c\u7d22';
+  if(pl==='amazon')return 'Steam\u30fbAmazon Games\u306b\u3064\u3044\u3066Google\u691c\u7d22';
+  if(pl==='gog')return 'Steam\u30fbGOG\u7248\u3092Google\u691c\u7d22';
+  if(pl==='ea app')return 'Steam\u30fbEA app\u7248\u3092Google\u691c\u7d22';
+  if(pl==='humble')return 'Steam\u30fbHumble Bundle\u7248\u3092Google\u691c\u7d22';
+  if(pl==='meta quest')return 'Steam\u30fbMeta Quest\u7248\u3092Google\u691c\u7d22';
+  if(p==='\u30ec\u30c8\u30ed')return 'Steam\u7248\u3068\u30ec\u30c8\u30ed\u30b2\u30fc\u30e0\u3092Google\u691c\u7d22';
   var consoles=['PS1','PS2','PS3','PS4','PS5','PSP','VITA','Switch','3DS','GC'];
   for(var i=0;i<consoles.length;i++){
-    if(pl===consoles[i].toLowerCase())return consoles[i]+'\u7248\u3092Google\u691c\u7d22';
+    if(pl===consoles[i].toLowerCase())return 'Steam\u30fb'+consoles[i]+'\u7248\u3092Google\u691c\u7d22';
   }
-  return '\u30b2\u30fc\u30e0\u30bf\u30a4\u30c8\u30eb\u3092Google\u691c\u7d22';
+  return 'Steam\u7248\u3092Google\u691c\u7d22';
 }
 function searchAddTitle(){
   var inp=document.getElementById('addTitle');
