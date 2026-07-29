@@ -422,6 +422,10 @@ tr.sch .tmain{color:var(--sch);}
 .cbtn-cancel{padding:7px 14px;background:none;border:1px solid var(--bd);border-radius:6px;color:var(--dim);font-size:13px;cursor:pointer;font-family:var(--fn);}
 
 /* ── RESPONSIVE ── */
+/* PCの2列表示では、ランキング欄と高さを揃えて実績を広く表示 */
+@media(min-width:901px){
+  .trophy-grid{max-height:240px;}
+}
 @media(max-width:900px){
   .dash-row.r3{grid-template-columns:1fr;}
   .dash-row.r2{grid-template-columns:1fr;}
