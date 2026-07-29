@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Game Library v1.2.4</title>
+<title>Game Library v1.2.5</title>
 <!-- App icons / PWA -->
 <link rel="icon" href="./favicon.ico?v=20260716" sizes="any">
 <link rel="icon" href="./icon.svg?v=20260716" type="image/svg+xml">
@@ -259,7 +259,7 @@ body.light .gtbl tbody tr{border-bottom:1px solid rgba(200,204,224,.5);}
 .clp{width:84px;}
 .cpc{width:40px;text-align:right;}
 .cpt{width:56px;text-align:right;}
-.cage{width:68px;}
+.cage{width:84px;}
 .cd{width:28px;text-align:center;}
 .fbtn{background:none;border:none;cursor:pointer;font-size:14px;padding:0;opacity:.2;transition:opacity .15s;line-height:1;}
 .fbtn:hover{opacity:.6;}
@@ -514,7 +514,7 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
       <div class="spill"><strong id="hTotal">0</strong>&nbsp;total</div>
       <div class="spill" style="color:var(--sp)"><strong id="hPlaying">0</strong>&nbsp;🎮</div>
       <div class="spill" style="color:var(--fav)"><strong id="hFav">0</strong>&nbsp;⭐</div>
-      <span class="ver-badge" id="verBadge">v1.2.4</span>
+      <span class="ver-badge" id="verBadge">v1.2.5</span>
     </div>
   </div>
 
@@ -765,7 +765,7 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
             <th class="cad" onclick="setSort('ad',this)">追加日</th>
             <th class="clp" onclick="setSort('lp',this)">最終プレイ</th>
             <th class="cpt" onclick="setSort('pt',this)">時間</th>
-            <th class="cage" onclick="setSort('age',this)">未プレイ期間</th>
+            <th class="cage" onclick="setSort('age',this)">発売からの経過</th>
             <th class="cd">🗑</th>
           </tr></thead>
           <tbody id="tBody"></tbody>
@@ -892,9 +892,19 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
 
 <script>
 var PC_RAW = [];
-var APP_VERSION='1.2.4';
-var APP_RELEASE='2026/07/28';
+var APP_VERSION='1.2.5';
+var APP_RELEASE='2026/07/29';
 var CHANGELOG=[
+  {v:'1.2.5',d:'2026/07/29',items:[
+    '経過期間の基準を「追加日」から「発売日」に変更',
+    '経過年月を暦ベース計算に変更（平均30.44日換算をやめ、丸1年で正しく「○年」になるよう修正）',
+    'ダッシュボードは発売日不明でも「発売から —」を表示',
+    'ダッシュボードの表示を「発売から○年○ヶ月経過」に変更',
+    'ライブラリ一覧の列名を「未プレイ期間」→「発売からの経過」に変更',
+    '発売日が不明なゲームは「—」表示（追加日での代用は行わない）',
+    '発売日が未来のゲームは「発売前」と表示',
+    '並べ替えも発売日基準に変更（発売日不明は常に末尾）'
+  ]},
   {v:'1.2.4',d:'2026/07/28',items:[
     '設定画面のジャンル並べ替えをドラッグ＆ドロップに対応',
     'マウス・タッチ操作の両方に対応（Pointer Events使用）',
@@ -1636,7 +1646,6 @@ function getUD(id){
 }
 
 /* ── DATE HELPERS ── */
-var NOW=Date.now();
 function parseDate(s){if(!s)return null;var d=new Date(s.replace(/\//g,'-'));return isNaN(d.getTime())?null:d;}
 function fmtDate(s){if(!s)return '';return s.split(' ')[0].replace(/-/g,'/');}
 function fmtTime(sec){
@@ -1646,15 +1655,23 @@ function fmtTime(sec){
   if(h>0)return h+'h'+(m>0?m+'m':'');
   return m>0?m+'m':'<1m';
 }
+/* 経過月数（発売日基準・暦ベース）。日付が不正／空なら null、未来日なら負の値を返す */
+function ageMonthsVal(s){
+  var d=parseDate(s);if(!d)return null;
+  var now=new Date();
+  var months=(now.getFullYear()-d.getFullYear())*12+(now.getMonth()-d.getMonth());
+  if(now.getDate()<d.getDate())months--;
+  return months;
+}
+/* 表示用文字列。不明='' / 未来='発売前' */
 function ageStr(s){
-  var d=parseDate(s);if(!d)return '';
-  var ms=NOW-d.getTime();if(ms<0)return '';
-  var months=Math.floor(ms/(1000*60*60*24*30.44));
+  var months=ageMonthsVal(s);
+  if(months===null)return '';
+  if(months<0)return '発売前';
   var y=Math.floor(months/12),m=months%12;
   if(y===0)return m+'ヶ月';
   return y+'年'+(m>0?m+'ヶ月':'');
 }
-function ageMonths(s){var d=parseDate(s);if(!d)return 0;return Math.floor((NOW-d.getTime())/(1000*60*60*24*30.44));}
 function pad2(n){return n<10?'0'+n:String(n);}
 
 /* ── STATE ── */
@@ -2034,8 +2051,10 @@ function renderTodayGame(backlogList){
   var ttl=document.createElement('div');ttl.className='today-title';ttl.textContent=todayGame.title;
   var meta=document.createElement('div');meta.className='today-meta';meta.textContent=todayGame.platform;
   info.appendChild(ttl);info.appendChild(meta);
-  var ag=ageStr(todayGame.ad);
-  if(ag){var age=document.createElement('div');age.className='today-age';age.textContent='購入から '+ag+' 経過';info.appendChild(age);}
+  var ag=ageStr(todayGame.rd);
+  var age=document.createElement('div');age.className='today-age';
+  age.textContent=(ag==='')?'発売から —':(ag==='発売前')?'発売前':('発売から '+ag+' 経過');
+  info.appendChild(age);
   wrap.appendChild(ph);wrap.appendChild(info);el.appendChild(wrap);
 }
 function rerollToday(){
@@ -2401,7 +2420,12 @@ function applyFilters(){
     if(sKey==='lp'){var da=parseDate(a.lp),db=parseDate(b.lp);if(da&&db)return sDir*(db-da);if(da)return sDir*-1;if(db)return sDir*1;}
     if(sKey==='pc'){var d=(b.pc||0)-(a.pc||0);if(d!==0)return sDir*d;}
     if(sKey==='pt'){var d=(b.pt||0)-(a.pt||0);if(d!==0)return sDir*d;}
-    if(sKey==='age'){var da=ageMonths(a.ad),db=ageMonths(b.ad);if(da!==db)return sDir*(db-da);}
+    if(sKey==='age'){
+      var va=ageMonthsVal(a.rd),vb=ageMonthsVal(b.rd);
+      if(va===null&&vb!==null)return 1;
+      if(va!==null&&vb===null)return -1;
+      if(va!==null&&vb!==null&&va!==vb)return sDir*(vb-va);
+    }
     if(a.title<b.title)return sDir*-1;if(a.title>b.title)return sDir*1;return 0;
   });
   filteredGames=res;
@@ -2515,7 +2539,7 @@ function makeRow(g){
 
   // age
   var tdAge=document.createElement('td');tdAge.className='cage';
-  var am=ageMonths(g.ad),agS=g.ad?ageStr(g.ad):'';
+  var amv=ageMonthsVal(g.rd),agS=ageStr(g.rd),am=(amv===null||amv<0)?0:amv;
   var agBdg=document.createElement('span');
   agBdg.className='age-badge'+(am>=36?' old':am>=12?' mid':'');
   agBdg.textContent=agS||'—';tdAge.appendChild(agBdg);tr.appendChild(tdAge);
