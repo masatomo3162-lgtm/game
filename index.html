@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Game Library v1.2.7</title>
+<title>Game Library v1.2.8</title>
 <!-- App icons / PWA -->
 <link rel="icon" href="./favicon.ico?v=20260716" sizes="any">
 <link rel="icon" href="./icon.svg?v=20260716" type="image/svg+xml">
@@ -260,7 +260,9 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fn);font-size:14px;o
 .twrap{flex:1;overflow-y:auto;overflow-x:auto;position:relative;}
 .twrap::-webkit-scrollbar{width:10px;height:10px;}
 .twrap::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px;}
-.gtbl{width:100%;border-collapse:collapse;table-layout:fixed;min-width:900px;}
+.gtbl{width:100%;border-collapse:collapse;table-layout:fixed;min-width:860px;}
+/* 複数選択列がある場合のみ、その分だけ最小幅を広げる（v1.2.8） */
+.gtbl.has-sel{min-width:900px;}
 .gtbl thead{position:sticky;top:0;z-index:10;}
 .gtbl th{padding:6px 7px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--mt);background:var(--sf);border-bottom:1px solid var(--bd);white-space:nowrap;cursor:pointer;user-select:none;overflow:hidden;text-overflow:ellipsis;transition:color .15s;}
 .gtbl th:hover{color:var(--dim);}
@@ -548,7 +550,7 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
       <div class="spill"><strong id="hTotal">0</strong>&nbsp;total</div>
       <div class="spill" style="color:var(--sp)"><strong id="hPlaying">0</strong>&nbsp;🎮</div>
       <div class="spill" style="color:var(--fav)"><strong id="hFav">0</strong>&nbsp;⭐</div>
-      <span class="ver-badge" id="verBadge">v1.2.7</span>
+      <span class="ver-badge" id="verBadge">v1.2.8</span>
     </div>
   </div>
 
@@ -802,9 +804,9 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
         </div>
       </div>
       <div class="twrap" id="twrap">
-        <table class="gtbl">
+        <table class="gtbl has-sel" id="gtbl">
           <thead><tr>
-            <th class="csel"><input type="checkbox" class="selchk" id="selAllChk" title="表示中のゲームをすべて選択"></th>
+            <th class="csel" id="selAllTh"><input type="checkbox" class="selchk" id="selAllChk" title="表示中のゲームをすべて選択"></th>
             <th class="cf">⭐</th>
             <th class="cst" onclick="setSort('stars',this)">評価</th>
             <th class="ct" onclick="setSort('title',this)" id="th-title">タイトル ↑</th>
@@ -941,9 +943,17 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
 
 <script>
 var PC_RAW = [];
-var APP_VERSION='1.2.7';
+var APP_VERSION='1.2.8';
 var APP_RELEASE='2026/07/31';
 var CHANGELOG=[
+  {v:'1.2.8',d:'2026/07/31',items:[
+    '設定画面に、ゲーム一覧の複数選択機能を表示・非表示にする設定を追加',
+    '初期値はONのため、アップデート後も現在の操作性は変わりません',
+    'OFFにするとチェックボックス列・一括操作バーをDOMごと削除し、一覧の各列を広く表示',
+    'ONからOFFへ切り替えた際は選択状態を自動で解除',
+    '設定はlocalStorageへ保存し、再読み込み・再起動後も維持',
+    'CSVの列構成およびゲームデータには影響なし'
+  ]},
   {v:'1.2.7',d:'2026/07/31',items:[
     '新規タイトル登録画面で、各入力項目からEnterキーで登録できるよう変更',
     '日本語IME変換確定のEnterでは登録されないよう対策（isComposing / keyCode 229 判定）',
@@ -1114,6 +1124,7 @@ var CFG = {
   backupFolderName:'',
   backupLastDate:'',
   decor:1,
+  showMultiSelect:true,
   customGenres:[],
   hiddenGenres:[],
   genreOrder:[]
@@ -1131,6 +1142,8 @@ function loadCFG(){
     if(s.backupFolderName)CFG.backupFolderName=s.backupFolderName;
     if(s.backupLastDate)CFG.backupLastDate=s.backupLastDate;
     if(s.decor!==undefined)CFG.decor=s.decor;
+    /* 旧設定にshowMultiSelectが無い場合はtrue（現行の操作性を維持）とする */
+    if(s.showMultiSelect!==undefined)CFG.showMultiSelect=!!s.showMultiSelect;
     if(Array.isArray(s.customGenres))CFG.customGenres=s.customGenres;
     if(Array.isArray(s.hiddenGenres))CFG.hiddenGenres=s.hiddenGenres;
     if(Array.isArray(s.genreOrder))CFG.genreOrder=s.genreOrder;
@@ -1817,6 +1830,7 @@ function init(){
   if(apEl)apEl.addEventListener('change',updateAddSearchTooltip);
   setupAddEnter();
   setupSelection();
+  applyMultiSelectUI();
   renderDash();
   applyFilters();
   setupVS();
@@ -2530,6 +2544,43 @@ function setSort(key,th){
 /* ── 複数選択（v1.2.7） ──
    選択状態は一時的なUI状態。localStorage / IndexedDB / CSV には一切保存しない。 */
 var selIds=(typeof Set==='function')?new Set():null;
+/* 設定が未定義の古いデータでもtrue扱いにする（v1.2.8） */
+function multiSelectOn(){return CFG.showMultiSelect!==false;}
+/* OFF時はチェックボックス列・一括操作バーをDOMから取り外す（CSSで隠すだけにしない） */
+var bulkBarNode=null,selAllThNode=null;
+function applyMultiSelectUI(){
+  var on=multiSelectOn();
+  var tbl=document.getElementById('gtbl');
+  if(tbl)tbl.classList.toggle('has-sel',on);
+  var headRow=document.querySelector('.gtbl thead tr');
+  var th=document.getElementById('selAllTh');
+  if(th)selAllThNode=th;
+  if(on){
+    if(!th&&headRow&&selAllThNode)headRow.insertBefore(selAllThNode,headRow.firstChild);
+  }else if(th&&th.parentNode){
+    th.parentNode.removeChild(th);
+  }
+  var bar=document.getElementById('bulkBar');
+  if(bar)bulkBarNode=bar;
+  if(on){
+    if(!bar&&bulkBarNode){
+      var anchor=document.getElementById('rbar');
+      if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(bulkBarNode,anchor.nextSibling);
+    }
+  }else if(bar&&bar.parentNode){
+    bar.classList.remove('open');
+    bar.parentNode.removeChild(bar);
+  }
+}
+/* 一覧テーブルの現在の列数（仮想スクロールのスペーサー用） */
+function tableColCount(){return multiSelectOn()?12:11;}
+function setMultiSelectEnabled(on){
+  CFG.showMultiSelect=!!on;
+  saveCFG();
+  if(!CFG.showMultiSelect)selClearAll();
+  applyMultiSelectUI();
+  applyFilters();
+}
 function selHas(id){return selIds?selIds.has(id):false;}
 function selAdd(id){if(selIds)selIds.add(id);}
 function selDel(id){if(selIds)selIds['delete'](id);}
@@ -2568,11 +2619,13 @@ function visibleSelectedCount(){
   return n;
 }
 function toggleRowSel(id,checked){
+  if(!multiSelectOn())return;
   if(checked)selAdd(id);else selDel(id);
   updateSelUI();
 }
 /* ヘッダーの「すべて選択」は、絞り込み結果として表示中のゲームだけを対象にする */
 function toggleSelectAllVisible(checked){
+  if(!multiSelectOn())return;
   for(var i=0;i<filteredGames.length;i++){
     if(checked)selAdd(filteredGames[i].id);else selDel(filteredGames[i].id);
   }
@@ -2585,6 +2638,11 @@ function clearSelection(){
   updateSelUI();
 }
 function updateSelUI(){
+  if(!multiSelectOn()){
+    var offBar=document.getElementById('bulkBar');
+    if(offBar)offBar.classList.remove('open');
+    return;
+  }
   var vis=filteredGames.length,visSel=visibleSelectedCount(),total=selSize();
   var chk=document.getElementById('selAllChk');
   if(chk){
@@ -2609,6 +2667,7 @@ function setupSelection(){
    新しいデータ項目は追加せず、既存の ud[id].acq を書き換えるだけ。
    CSV列構成・保存形式・旧バージョン互換はいずれも変更しない。 */
 function applyBulkAcq(){
+  if(!multiSelectOn())return;
   pruneSelection();
   var ids=selectedIds();
   if(!ids.length){updateSelUI();return;}
@@ -2703,9 +2762,9 @@ function renderVS(){
   if(!total){if(tbody)tbody.innerHTML='';if(empty)empty.style.display='flex';return;}
   if(empty)empty.style.display='none';
   var frag=document.createDocumentFragment();
-  if(topH>0){var sp=document.createElement('tr');var td=document.createElement('td');td.colSpan=12;td.style.cssText='height:'+topH+'px;padding:0';sp.appendChild(td);frag.appendChild(sp);}
+  if(topH>0){var sp=document.createElement('tr');var td=document.createElement('td');td.colSpan=tableColCount();td.style.cssText='height:'+topH+'px;padding:0';sp.appendChild(td);frag.appendChild(sp);}
   for(var i=start;i<end;i++)frag.appendChild(makeRow(filteredGames[i]));
-  if(botH>0){var sp=document.createElement('tr');var td=document.createElement('td');td.colSpan=12;td.style.cssText='height:'+botH+'px;padding:0';sp.appendChild(td);frag.appendChild(sp);}
+  if(botH>0){var sp=document.createElement('tr');var td=document.createElement('td');td.colSpan=tableColCount();td.style.cssText='height:'+botH+'px;padding:0';sp.appendChild(td);frag.appendChild(sp);}
   if(tbody){tbody.innerHTML='';tbody.appendChild(frag);}
 }
 
@@ -2714,15 +2773,18 @@ function makeRow(g){
   var u=getUD(g.id);var st=u.st||'unchecked';
   var tr=document.createElement('tr');if(STC[st])tr.className=STC[st];
 
-  // 複数選択チェックボックス（v1.2.7 / 選択状態はゲームID単位で保持）
-  var tdSel=document.createElement('td');tdSel.className='csel';
-  var cb=document.createElement('input');cb.type='checkbox';cb.className='selchk';
-  cb.checked=selHas(g.id);cb.title='このゲームを選択';
-  (function(gid,box){
-    box.addEventListener('click',function(e){e.stopPropagation();});
-    box.addEventListener('change',function(e){e.stopPropagation();toggleRowSel(gid,box.checked);});
-  })(g.id,cb);
-  tdSel.appendChild(cb);tr.appendChild(tdSel);
+  // 複数選択チェックボックス（v1.2.7 / 表示は設定で切替 v1.2.8）
+  // OFFのときは要素自体を生成しないため、列の空白も残らない
+  if(multiSelectOn()){
+    var tdSel=document.createElement('td');tdSel.className='csel';
+    var cb=document.createElement('input');cb.type='checkbox';cb.className='selchk';
+    cb.checked=selHas(g.id);cb.title='このゲームを選択';
+    (function(gid,box){
+      box.addEventListener('click',function(e){e.stopPropagation();});
+      box.addEventListener('change',function(e){e.stopPropagation();toggleRowSel(gid,box.checked);});
+    })(g.id,cb);
+    tdSel.appendChild(cb);tr.appendChild(tdSel);
+  }
 
   // fav
   var tdF=document.createElement('td');tdF.className='cf';
@@ -3274,6 +3336,13 @@ function renderSettingsPage(){
   r2.ctrl.appendChild(makeToggleGroup([['dashboard','ダッシュボード'],['library','全ゲーム一覧']],CFG.startTab,function(v){CFG.startTab=v;saveCFG();}));
   s2.rows.appendChild(r2.row);
   el.appendChild(s2.sec);
+
+  // ── ゲーム一覧 ──
+  var sl=makeSec('📋','ゲーム一覧');
+  var rl=makeRow('複数選択機能を表示','ゲーム一覧に複数選択用チェックボックスと一括操作機能を表示します');
+  rl.ctrl.appendChild(makeSwitch(multiSelectOn(),function(v){setMultiSelectEnabled(v);}));
+  sl.rows.appendChild(rl.row);
+  el.appendChild(sl.sec);
 
   // ── ジャンル管理 ──
   var sg=makeSec('🏷️','ジャンル管理');
