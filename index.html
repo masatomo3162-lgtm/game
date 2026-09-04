@@ -943,9 +943,16 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
 
 <script>
 var PC_RAW = [];
-var APP_VERSION='1.2.8';
-var APP_RELEASE='2026/07/31';
+var APP_VERSION='1.2.9';
+var APP_RELEASE='2026/09/04';
 var CHANGELOG=[
+  {v:'1.2.9',d:'2026/09/04',items:[
+    'Playnite CSV再読み込み時、既存ゲームのプレイ時間・プレイ回数・最終プレイ日時をCSVの最新値へ更新するよう修正',
+    '従来はCSV側のプレイ時間が増えていてもアプリ側が更新されなかったが、CSVの累積値をそのまま反映するよう変更（加算はしない）',
+    '同一データでの再読み込みは引き続き重複スキップとして扱われ、二重加算は発生しない',
+    'プレイ時間・プレイ回数・最終プレイ日時のいずれかが変化した場合のみ更新件数としてカウント',
+    'ゲーム登録・手動編集項目・ジャンル・プラットフォーム・トロフィー等の既存機能への影響なし'
+  ]},
   {v:'1.2.8',d:'2026/07/31',items:[
     '設定画面に、ゲーム一覧の複数選択機能を表示・非表示にする設定を追加',
     '初期値はONのため、アップデート後も現在の操作性は変わりません',
@@ -3157,9 +3164,20 @@ function importCSVText(text,mode){
         var existing=titleMap[key];
         if(existing){
           var exPri=PRIORITY[normalizePlatformName(existing.platform)]||99;
-          if(pri<exPri){existing.platform=src;getUD(existing.id).pl=src;updated++;}
-          else skipped++;
+          var platformChanged=false;
+          if(pri<exPri){existing.platform=src;getUD(existing.id).pl=src;platformChanged=true;}
           if(rawG&&!existing.rawG)existing.rawG=rawG;
+          // プレイ時間・プレイ回数・最終プレイ日時はPlaynite側の累積値を最新値として上書きする（加算はしない）。
+          var csvPtRaw=cell(row,hdrs,['プレイ時間','PlayTime','Play Time','Time Played']);
+          var csvPt=csvPtRaw!==''?parsePlayTime(csvPtRaw):undefined;
+          var csvPcRaw=cell(row,hdrs,['プレイ回数','PlayCount','Play Count','Times Played']);
+          var csvPc=csvPcRaw!==''?(parseInt(csvPcRaw,10)||0):undefined;
+          var csvLp=cell(row,hdrs,['最後のプレイ','LastPlayed','Last Played','最終プレイ']).trim();
+          var statChanged=false;
+          if(csvPt!==undefined&&csvPt!==existing.pt){existing.pt=csvPt;statChanged=true;}
+          if(csvPc!==undefined&&csvPc!==existing.pc){existing.pc=csvPc;statChanged=true;}
+          if(csvLp&&csvLp!==existing.lp){existing.lp=csvLp;statChanged=true;}
+          if(platformChanged||statChanged)updated++;else skipped++;
           continue;
         }
         var id=uniqueImportedId('pn',i,idx.byId);
