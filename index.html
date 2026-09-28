@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Game Library v1.2.8</title>
+<title>Game Library v1.2.9</title>
 <!-- App icons / PWA -->
 <link rel="icon" href="./favicon.ico?v=20260716" sizes="any">
 <link rel="icon" href="./icon.svg?v=20260716" type="image/svg+xml">
@@ -387,6 +387,8 @@ tr.sch .tmain{color:var(--sch);}
 .mttl{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;}
 .m-cpbtn{background:none;border:1px solid var(--bd);border-radius:4px;cursor:pointer;font-size:12px;padding:2px 6px;color:var(--dim);transition:all .15s;}
 .m-cpbtn:hover{border-color:var(--ac);color:var(--ac2);}
+.mttl-editwrap{display:none;flex:1;min-width:0;align-items:center;gap:6px;}
+.mttl-input{flex:1;min-width:0;background:var(--sf2);border:1px solid var(--ac);border-radius:4px;padding:4px 7px;color:var(--tx);font-size:13px;font-weight:700;outline:none;font-family:var(--fn);}
 .msub{font-size:9px;color:var(--mt);margin-top:2px;}
 .mx{background:none;border:none;color:var(--mt);cursor:pointer;font-size:20px;padding:0;line-height:1;flex-shrink:0;}
 .mx:hover{color:var(--tx);}
@@ -550,7 +552,7 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
       <div class="spill"><strong id="hTotal">0</strong>&nbsp;total</div>
       <div class="spill" style="color:var(--sp)"><strong id="hPlaying">0</strong>&nbsp;🎮</div>
       <div class="spill" style="color:var(--fav)"><strong id="hFav">0</strong>&nbsp;⭐</div>
-      <span class="ver-badge" id="verBadge">v1.2.8</span>
+      <span class="ver-badge" id="verBadge">v1.2.9</span>
     </div>
   </div>
 
@@ -840,6 +842,12 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
     <div class="mhdr">
       <div class="mhdr-i">
         <div class="mttl" id="mTitle"></div>
+        <div class="mttl-editwrap" id="mTitleEditWrap">
+          <input type="text" id="mTitleInput" class="mttl-input" maxlength="200">
+          <button class="m-cpbtn" id="mTitleSaveBtn" title="保存">✓</button>
+          <button class="m-cpbtn" id="mTitleCancelBtn" title="キャンセル">×</button>
+        </div>
+        <button class="m-cpbtn" id="mEditTitleBtn" title="タイトルを編集">✎</button>
         <button class="m-cpbtn" id="mCpBtn" title="タイトルをコピー">📋</button>
         <button class="m-cpbtn" id="mSearchBtn" title="ゲームタイトルをGoogleで検索">🔍</button>
       </div>
@@ -1836,6 +1844,7 @@ function init(){
   var apEl=document.getElementById('addPlatform');
   if(apEl)apEl.addEventListener('change',updateAddSearchTooltip);
   setupAddEnter();
+  setupTitleEdit();
   setupSelection();
   applyMultiSelectUI();
   renderDash();
@@ -2892,6 +2901,7 @@ function qFav(id,btn){
 function openModal(id){
   var g=null;for(var i=0;i<games.length;i++){if(games[i].id===id){g=games[i];break;}}
   if(!g||g.deleted)return;
+  cancelEditTitle();
   var u=getUD(id);
   mId=id;mStar=u.stars||0;mStat=u.st||'unchecked';mGenres=Object.assign({},u.genres);
   document.getElementById('mTitle').textContent=g.title;
@@ -2931,7 +2941,73 @@ function openModal(id){
 }
 function closeModal(){document.getElementById('overlay').classList.remove('open');document.body.style.overflow='';mId=null;}
 function onOvClick(e){if(e.target===document.getElementById('overlay'))closeModal();}
-document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeModal();confirmCancel();}});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    var ew=document.getElementById('mTitleEditWrap');
+    if(ew&&ew.style.display==='flex'){cancelEditTitle();return;}
+    closeModal();confirmCancel();
+  }
+});
+
+/* ── TITLE EDIT（v1.2.9） ──
+   ゲームの識別は内部ID(g.id)で行われており、タイトル(g.title)は
+   あくまで表示用の情報。編集してもud[id]や他の紐付きデータには
+   一切触れない。CSVエクスポート/インポートもidを主キーとして
+   一致させるため、タイトル変更後の再インポートでも重複は発生しない。*/
+function findGameById(id){for(var i=0;i<games.length;i++){if(games[i].id===id)return games[i];}return null;}
+function startEditTitle(){
+  if(!mId)return;
+  var g=findGameById(mId);if(!g)return;
+  var inp=document.getElementById('mTitleInput');
+  inp.value=g.title;
+  document.getElementById('mTitle').style.display='none';
+  document.getElementById('mEditTitleBtn').style.display='none';
+  document.getElementById('mTitleEditWrap').style.display='flex';
+  inp.focus();inp.select();
+}
+function cancelEditTitle(){
+  var ew=document.getElementById('mTitleEditWrap');if(!ew)return;
+  ew.style.display='none';
+  document.getElementById('mTitle').style.display='';
+  document.getElementById('mEditTitleBtn').style.display='';
+}
+function saveEditTitle(){
+  if(!mId)return;
+  var g=findGameById(mId);if(!g)return;
+  var newTitle=document.getElementById('mTitleInput').value.trim();
+  if(!newTitle){alert('タイトルを空にすることはできません。');return;}
+  if(newTitle===g.title){cancelEditTitle();return;}
+  var dupKey=gameTitlePlatformKey(newTitle,g.platform);
+  var dup=null;
+  for(var i=0;i<games.length;i++){
+    var og=games[i];
+    if(og===g||og.deleted)continue;
+    if(gameTitlePlatformKey(og.title,og.platform)===dupKey){dup=og;break;}
+  }
+  function applyRename(){
+    g.title=newTitle;
+    saveGames();
+    document.getElementById('mTitle').textContent=g.title;
+    document.getElementById('mSub').textContent='プラットフォーム: '+g.platform+'  |  Playniteジャンル: '+(g.rawG||'未分類');
+    cancelEditTitle();
+    resetSmartRecs();buildSBs();renderDash();applyFilters();buildMemoSelect();
+  }
+  if(dup){
+    showConfirm('「'+newTitle+'」は既存のゲーム「'+dup.title+'」（'+dup.platform+'）とタイトル・機種が重複します。\nそれぞれ別のデータとして保持されますが、このまま変更しますか？',applyRename);
+  }else{
+    applyRename();
+  }
+}
+function setupTitleEdit(){
+  var eb=document.getElementById('mEditTitleBtn');if(eb)eb.addEventListener('click',startEditTitle);
+  var sb=document.getElementById('mTitleSaveBtn');if(sb)sb.addEventListener('click',saveEditTitle);
+  var cb=document.getElementById('mTitleCancelBtn');if(cb)cb.addEventListener('click',cancelEditTitle);
+  var inp=document.getElementById('mTitleInput');
+  if(inp)inp.addEventListener('keydown',function(e){
+    if(e.key==='Enter'){e.preventDefault();saveEditTitle();}
+    else if(e.key==='Escape'){e.preventDefault();e.stopPropagation();cancelEditTitle();}
+  });
+}
 function openUrl(id){var url=document.getElementById(id).value.trim();if(url)window.open(url,'_blank','noopener');}
 function setMStar(n){mStar=(mStar===n)?0:n;updMStar(mStar);}
 function updMStar(n){var stars=document.querySelectorAll('.mstar');for(var i=0;i<stars.length;i++)stars[i].classList.toggle('lit',parseInt(stars[i].getAttribute('data-v'))<=n);}
