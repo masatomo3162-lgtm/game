@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Game Library v1.2.9</title>
+<title>Game Library v1.3.0</title>
 <!-- App icons / PWA -->
 <link rel="icon" href="./favicon.ico?v=20260716" sizes="any">
 <link rel="icon" href="./icon.svg?v=20260716" type="image/svg+xml">
@@ -552,7 +552,7 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
       <div class="spill"><strong id="hTotal">0</strong>&nbsp;total</div>
       <div class="spill" style="color:var(--sp)"><strong id="hPlaying">0</strong>&nbsp;🎮</div>
       <div class="spill" style="color:var(--fav)"><strong id="hFav">0</strong>&nbsp;⭐</div>
-      <span class="ver-badge" id="verBadge">v1.2.9</span>
+      <span class="ver-badge" id="verBadge">v1.3.0</span>
     </div>
   </div>
 
@@ -898,6 +898,20 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
         </div>
       </div>
       <div>
+        <div class="msl">2c. 日付（発売日・追加日・最終プレイ日）</div>
+        <div class="prow" style="flex-wrap:wrap;gap:8px 14px">
+          <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--mt)">発売日
+            <input type="date" class="mi" id="mRd" style="flex:none;width:150px;max-width:150px">
+            <button type="button" class="btnsm" onclick="clearDateField('mRd')" title="空欄にする">×</button></label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--mt)">追加日
+            <input type="date" class="mi" id="mAd" style="flex:none;width:150px;max-width:150px">
+            <button type="button" class="btnsm" onclick="clearDateField('mAd')" title="空欄にする">×</button></label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--mt)">最終プレイ日
+            <input type="date" class="mi" id="mLp" style="flex:none;width:150px;max-width:150px">
+            <button type="button" class="btnsm" onclick="clearDateField('mLp')" title="空欄にする">×</button></label>
+        </div>
+      </div>
+      <div>
         <div class="genre-head">
           <div class="msl">3. ジャンル（複数選択可）</div>
           <button type="button" class="btn-clear-genres" onclick="clearModalGenres()">× すべてのチェックを外す</button>
@@ -951,9 +965,19 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
 
 <script>
 var PC_RAW = [];
-var APP_VERSION='1.2.9';
-var APP_RELEASE='2026/09/04';
+var APP_VERSION='1.3.0';
+var APP_RELEASE='2026/09/29';
 var CHANGELOG=[
+  {v:'1.3.0',d:'2026/09/29',items:[
+    'ゲーム詳細画面に「発売日」「追加日」「最終プレイ日」の手動入力・編集欄を追加（空欄可・×ボタンで消去）',
+    '新規登録したゲームは、登録日を追加日として自動設定（後から編集可）',
+    '既存ゲームの追加日は一括設定していません（元データのまま。空欄なら空欄のまま）',
+    '日付欄を触らずに保存した場合、既存の日付値は書き換えません（Playnite由来の日時もそのまま保持）',
+    '日付を編集して保存した場合のみ YYYY-MM-DD 形式で保存',
+    'CSV列名は従来どおり releaseDate / addDate / lastPlayed（変更なし）。取り込み時は release_date / added_date / last_played_date の列名も認識',
+    '旧CSV・日付列のないCSVもこれまでどおり読み込み可能',
+    'タイトル編集・★評価・ジャンル・プレイ時間等の既存機能・データへの影響なし'
+  ]},
   {v:'1.2.9',d:'2026/09/04',items:[
     'Playnite CSV再読み込み時、既存ゲームのプレイ時間・プレイ回数・最終プレイ日時をCSVの最新値へ更新するよう修正',
     '従来はCSV側のプレイ時間が増えていてもアプリ側が更新されなかったが、CSVの累積値をそのまま反映するよう変更（加算はしない）',
@@ -1785,6 +1809,17 @@ function ageStr(s){
   return y+'年'+(m>0?m+'ヶ月':'');
 }
 function pad2(n){return n<10?'0'+n:String(n);}
+/* ── 日付の手動編集用ヘルパー（v1.3.0） ──
+   内部では既存データをそのまま保持し、編集した場合のみ YYYY-MM-DD で保存する。 */
+function normDateInput(s){
+  if(!s)return '';
+  var m=String(s).match(/^\s*(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
+  if(!m)return '';
+  return m[1]+'-'+pad2(parseInt(m[2],10))+'-'+pad2(parseInt(m[3],10));
+}
+function todayISO(){var d=new Date();return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());}
+function clearDateField(id){var el=document.getElementById(id);if(el)el.value='';}
+var mDateOrig={rd:'',ad:'',lp:''};
 
 /* ── STATE ── */
 var games=[];
@@ -2377,7 +2412,7 @@ function addGame(){
   var vjpEl=document.getElementById('addVolunteerJp');u.volunteerJapaneseSupport=!!(vjpEl&&vjpEl.checked);
   var favEl=document.getElementById('addFav');u.fav=!!(favEl&&favEl.checked);
   save();
-  games.push({id:id,title:title,rawG:'',platform:plat,rd:'',ad:'',lp:'',pt:0,pc:0,isC:true,deleted:false});
+  games.push({id:id,title:title,rawG:'',platform:plat,rd:'',ad:todayISO(),lp:'',pt:0,pc:0,isC:true,deleted:false});
   saveGames();
   document.getElementById('addTitle').value='';
   var jpReset=document.getElementById('addJp');if(jpReset)jpReset.checked=false;
@@ -2915,6 +2950,9 @@ function openModal(id){
   document.getElementById('mPlat').value=u.pl||g.platform;
   document.getElementById('mMemoTa').value=u.memo||'';
   var mAcqEl=document.getElementById('mAcq');if(mAcqEl)mAcqEl.value=u.acq||'unknown';
+  mDateOrig={rd:normDateInput(g.rd),ad:normDateInput(g.ad),lp:normDateInput(g.lp)};
+  var dR=document.getElementById('mRd'),dA=document.getElementById('mAd'),dL=document.getElementById('mLp');
+  if(dR)dR.value=mDateOrig.rd;if(dA)dA.value=mDateOrig.ad;if(dL)dL.value=mDateOrig.lp;
   // modal copy button
   var mcb=document.getElementById('mCpBtn');
   if(mcb){mcb.onclick=function(){navigator.clipboard.writeText(g.title).then(function(){mcb.textContent='✅';setTimeout(function(){mcb.textContent='📋';},1000);}).catch(function(){});};}
@@ -3037,6 +3075,15 @@ function saveModal(){
   var mVjpSave=document.getElementById('mVolunteerJp');u.volunteerJapaneseSupport=!!(mVjpSave&&mVjpSave.checked);
   var newPl=document.getElementById('mPlat').value;
   u.pl=newPl;if(g)g.platform=newPl;u.am=true;
+  // 日付3項目：入力欄が開いた時点の値から変更された項目のみ更新（未変更なら元の値を保持）
+  if(g){
+    var dfs=[['rd','mRd'],['ad','mAd'],['lp','mLp']];
+    for(var di=0;di<dfs.length;di++){
+      var del=document.getElementById(dfs[di][1]);if(!del)continue;
+      var nv=normDateInput(del.value);
+      if(nv!==mDateOrig[dfs[di][0]])g[dfs[di][0]]=nv;
+    }
+  }
   save();saveGames();resetSmartRecs();closeModal();buildSBs();applyFilters();updateHdr();buildMemoSelect();if(curTab==='dashboard')renderDash();
 }
 
@@ -3185,11 +3232,11 @@ function importJSONBackup(text,mode){
         if(!g)g=idx.byKey[gameTitlePlatformKey(title,platform)];
         if(!g){
           var id=rawId||uniqueImportedId('json',i,idx.byId);
-          g={id:id,title:title,rawG:x.rawG||x.rg||'',platform:platform,rd:x.rd||x.releaseDate||'',ad:x.ad||x.addDate||'',lp:x.lp||x.lastPlayed||'',pt:parseInt(x.pt||x.playTimeSec,10)||0,pc:parseInt(x.pc||x.playCount,10)||0,isC:String(id).indexOf('c_')===0,deleted:false};
+          g={id:id,title:title,rawG:x.rawG||x.rg||'',platform:platform,rd:x.rd||x.releaseDate||x.release_date||'',ad:x.ad||x.addDate||x.added_date||'',lp:x.lp||x.lastPlayed||x.last_played_date||'',pt:parseInt(x.pt||x.playTimeSec,10)||0,pc:parseInt(x.pc||x.playCount,10)||0,isC:String(id).indexOf('c_')===0,deleted:false};
           games.push(g);idx.byId[id]=g;idx.byKey[gameTitlePlatformKey(title,platform)]=g;added++;
         }else{
           g.deleted=false;g.title=title||g.title;g.rawG=x.rawG||x.rg||g.rawG||'';g.platform=platform||g.platform;
-          g.rd=x.rd||x.releaseDate||g.rd||'';g.ad=x.ad||x.addDate||g.ad||'';g.lp=x.lp||x.lastPlayed||g.lp||'';
+          g.rd=x.rd||x.releaseDate||x.release_date||g.rd||'';g.ad=x.ad||x.addDate||x.added_date||g.ad||'';g.lp=x.lp||x.lastPlayed||x.last_played_date||g.lp||'';
           if(x.pt!==undefined||x.playTimeSec!==undefined)g.pt=parseInt(x.pt||x.playTimeSec,10)||0;
           if(x.pc!==undefined||x.playCount!==undefined)g.pc=parseInt(x.pc||x.playCount,10)||0;
           updated++;
@@ -3283,18 +3330,18 @@ function importCSVText(text,mode){
         if(!g){
           var id=rawId||uniqueImportedId('c',i,idx.byId);
           g={id:id,title:title||'?',rawG:cellIf(row,hdrs,['rawG','playniteGenre','Playniteジャンル'])||'',platform:platform,
-            rd:cellIf(row,hdrs,['releaseDate','発売日','ReleaseDate','Release Date'])||'',
-            ad:cellIf(row,hdrs,['addDate','追加日','Added','DateAdded'])||'',
-            lp:cellIf(row,hdrs,['lastPlayed','最終プレイ','LastPlayed','Last Played'])||'',
+            rd:cellIf(row,hdrs,['releaseDate','release_date','発売日','ReleaseDate','Release Date'])||'',
+            ad:cellIf(row,hdrs,['addDate','added_date','追加日','Added','DateAdded'])||'',
+            lp:cellIf(row,hdrs,['lastPlayed','last_played_date','最終プレイ','LastPlayed','Last Played'])||'',
             pt:parsePlayTime(cellIf(row,hdrs,['playTimeSec','プレイ時間','PlayTime','Play Time'])||''),
             pc:parseInt(cellIf(row,hdrs,['playCount','プレイ回数','PlayCount','Play Count'])||'',10)||0,
             isC:String(id).indexOf('c_')===0,deleted:false};
           games.push(g);idx.byId[id]=g;idx.byKey[gameTitlePlatformKey(g.title,g.platform)]=g;added++;
         }else{
           g.deleted=false;if(title)g.title=title;if(platformCell!==undefined)g.platform=platform;
-          var rd=cellIf(row,hdrs,['releaseDate','発売日','ReleaseDate','Release Date']);if(rd!==undefined&&rd!=='')g.rd=rd;
-          var ad=cellIf(row,hdrs,['addDate','追加日','Added','DateAdded']);if(ad!==undefined&&ad!=='')g.ad=ad;
-          var lp=cellIf(row,hdrs,['lastPlayed','最終プレイ','LastPlayed','Last Played']);if(lp!==undefined&&lp!=='')g.lp=lp;
+          var rd=cellIf(row,hdrs,['releaseDate','release_date','発売日','ReleaseDate','Release Date']);if(rd!==undefined&&rd!=='')g.rd=rd;
+          var ad=cellIf(row,hdrs,['addDate','added_date','追加日','Added','DateAdded']);if(ad!==undefined&&ad!=='')g.ad=ad;
+          var lp=cellIf(row,hdrs,['lastPlayed','last_played_date','最終プレイ','LastPlayed','Last Played']);if(lp!==undefined&&lp!=='')g.lp=lp;
           var pt=cellIf(row,hdrs,['playTimeSec','プレイ時間','PlayTime','Play Time']);if(pt!==undefined&&pt!=='')g.pt=parsePlayTime(pt);
           var pc=cellIf(row,hdrs,['playCount','プレイ回数','PlayCount','Play Count']);if(pc!==undefined&&pc!=='')g.pc=parseInt(pc,10)||0;
           updated++;
