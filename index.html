@@ -860,7 +860,7 @@ body:not(.decor-off) .dash{background-image:radial-gradient(rgba(124,106,247,.05
         </div>
         <button class="m-cpbtn" id="mEditTitleBtn" title="タイトルを編集">✎</button>
         <button class="m-cpbtn" id="mCpBtn" title="タイトルをコピー">📋</button>
-        <button class="m-cpbtn" id="mSearchBtn" title="ゲームタイトルをGoogleで検索">🔍</button>
+        <button class="m-cpbtn" id="mSearchBtn" title="プラットフォーム名＋タイトルでGoogle検索">🔍</button>
       </div>
       <button class="mx" onclick="closeModal()">×</button>
     </div>
@@ -1453,6 +1453,13 @@ function searchGameTitle(title,platform){
   if(!title){alert('\u691c\u7d22\u3059\u308b\u30b2\u30fc\u30e0\u30bf\u30a4\u30c8\u30eb\u304c\u3042\u308a\u307e\u305b\u3093\u3002');return;}
   var url=buildGameSearchUrl(title,platform);
   try{window.open(url,'_blank','noopener,noreferrer');}catch(e){}
+}
+function searchGameByPlatform(title,platform){
+  title=String(title||'').trim();
+  platform=String(platform||'').trim();
+  if(!title)return;
+  var query=platform?platform+' '+title:title;
+  try{window.open('https://www.google.com/search?q='+encodeURIComponent(query),'_blank','noopener,noreferrer');}catch(e){}
 }
 function searchBtnTitleFor(platform){
   var p=String(platform||'').trim();
@@ -3048,9 +3055,8 @@ function openModal(id){
   var msb=document.getElementById('mSearchBtn');
   var mPlatEl=document.getElementById('mPlat');
   if(msb){
-    msb.title=searchBtnTitleFor(mPlatEl?mPlatEl.value:'');
-    msb.onclick=function(){searchGameTitle(g.title,mPlatEl?mPlatEl.value:'');};
-    if(mPlatEl)mPlatEl.onchange=function(){msb.title=searchBtnTitleFor(mPlatEl.value);};
+    msb.title='プラットフォーム名＋タイトルでGoogle検索';
+    msb.onclick=function(){searchGameByPlatform(g.title,mPlatEl?mPlatEl.value:g.platform);};
   }
   updMStar(mStar);updMStat(mStat);
   var grid=document.getElementById('mGGrid');grid.innerHTML='';
